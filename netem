@@ -40,6 +40,10 @@ function printHelp {
     exit 1
 }
 
+if [ "$USER" != "root" ]; then
+    printHelp $0 "Must be run as root!"
+fi
+
 netemFolder=$(realpath $(dirname $0))
 myUser=$(logname)
 timeout=60
