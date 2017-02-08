@@ -31,8 +31,10 @@ blogspot.com.br
 blogspot.com.es
 blogspot.in
 blogspot.jp
+bloomberg.com
 bongacams.com
 bp.blogspot.com
+bukalapak.com
 buzzfeed.com
 caijing.com.cn
 china.com
@@ -42,7 +44,9 @@ cnblogs.com
 cnn.com
 codeonclick.com
 daikynguyenvn.com
+dailymail.co.uk
 detail.tmall.com
+deviantart.com
 dictionary.com
 digikala.com
 dingit.tv
@@ -58,8 +62,10 @@ fbcdn.net
 feedly.com
 fiverr.com
 flipkart.com
+gearbest.com
 gfycat.com
 giphy.com
+globo.com
 go2cloud.org
 go.com
 godaddy.com
@@ -127,6 +133,7 @@ hilltopads.net
 hola.com
 hotstar.com
 icloud.com
+ifeng.com
 imdb.com
 indeed.com
 instagram.com
@@ -147,7 +154,9 @@ media.tumblr.com
 my-hit.org
 mysagagame.com
 namu.wiki
+netflix.com
 newtabtv.com
+nownews.com
 oeeee.com
 offerreality.com
 onclickpredictiv.com
@@ -162,6 +171,7 @@ perfecttoolmedia.com
 pinimg.com
 pixnet.net
 plusnetwork.com
+porn555.com
 pornhub.com
 prestoris.com
 pulseonclick.com
@@ -170,10 +180,16 @@ reddituploads.com
 rediff.com
 redirectvoluum.com
 redtube.com
+repubblica.it
+sabah.com.tr
 samsung.com
 sberbank.ru
+seasonvar.ru
+sharepoint.com
+sina.com.cn
 snapdeal.com
 sogou.com
+sohu.com
 soundcloud.com
 speedtest.net
 spotscenered.info
@@ -182,6 +198,7 @@ taleo.net
 taobao.com
 target.com
 t.co
+telegraph.co.uk
 terraclicks.com
 thefreedictionary.com
 theladbible.com
@@ -205,6 +222,9 @@ wittyfeed.com
 wixsite.com
 xinhuanet.com
 xnxx.com
+yahoo.com
+youku.com
+youm7.com
 youth.cn
 youtube-mp3.org
 zendesk.com

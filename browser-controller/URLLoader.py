@@ -73,11 +73,11 @@ class URLLoader(threading.Thread):
 
     def run(self):
         self.reset_driver()
+        succeeded = True
 
         for url in self.url_list:
             url = url.strip()
             tries = 0
-            succeeded = True
 
             while tries < self.max_retries:
                 if not succeeded:

@@ -41,10 +41,10 @@ function printHelp {
 }
 
 netemFolder=$(realpath $(dirname $0))
-myUser=$USER
+myUser=$(logname)
 timeout=60
 maxRetries=3
-caddy=$(which caddy)
+caddy=$(su $myUser -c "which caddy")
 
 limitArgs=""
 
@@ -113,7 +113,7 @@ if [ -z "$webProtocol" ]; then
 fi
 
 # Setup link limits
-sudo $netemFolder/net-setup/limit-bottleneck.bash $limitArgs
+$netemFolder/net-setup/limit-bottleneck.bash $limitArgs
 if [ $? != 0 ]; then
     echo "ERROR: Failed to limit network links!"
     exit 3
@@ -121,32 +121,32 @@ fi
 
 # ------------------ RUN
 pidFile="/tmp/netem.server.pid"
-sudo touch $pidFile
+touch $pidFile
 # Setup a webserver of some sort
 if [ "$webProtocol" = "--http2" ]; then
-    sudo ip netns exec server-ns $caddy -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
+    ip netns exec server-ns $caddy -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
 elif [ "$webProtocol" = "--quic" ]; then
-    sudo ip netns exec server-ns $caddy -quic -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
+    ip netns exec server-ns $caddy -quic -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
 elif [ $webProtocol = "--http1" ]; then
-    sudo ip netns exec server-ns $caddy -http2=false -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
+    ip netns exec server-ns $caddy -http2=false -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
 else
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP1."
 fi
 
 
 # Start Selenium
-sudo ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap start"
+ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap start"
 # Run browser
 if [ "$debugMode" = true ]; then
-    sudo ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --debug"
+    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --debug"
 elif [ "$guiMode" = true ]; then
-    sudo ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --with-gui"
+    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --with-gui"
 else
-    sudo ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout"
+    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout"
 fi
 
 # ----------------- TEARDOWN
 # Close web server of some sort
-sudo kill -QUIT $( cat /tmp/netem.server.pid )
+kill -QUIT $( cat /tmp/netem.server.pid )
 # Kill selenium
-sudo ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap stop"
+ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap stop"
