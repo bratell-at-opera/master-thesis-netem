@@ -48,7 +48,7 @@ netemFolder=$(realpath $(dirname $0))
 myUser=$(logname)
 timeout=60
 maxRetries=3
-caddy=$(su $myUser -c "which caddy")
+caddy=/home/fille/go/bin/caddy
 
 limitArgs=""
 

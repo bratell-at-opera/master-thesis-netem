@@ -88,7 +88,6 @@ free.fr
 freepik.com
 gamefaqs.com
 gamepedia.com
-getmyads.com
 gismeteo.ru
 github.com
 github.io
@@ -128,7 +127,6 @@ linkedin.com
 liputan6.com
 list.tmall.com
 livedoor.jp
-login.tmall.com
 ltn.com.tw
 mailchimp.com
 mail.ru

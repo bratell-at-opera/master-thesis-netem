@@ -63,6 +63,7 @@ feedly.com
 fiverr.com
 flipkart.com
 gearbest.com
+getmyads.com
 gfycat.com
 giphy.com
 globo.com
@@ -148,6 +149,7 @@ line.me
 live.com
 livejasmin.com
 livejournal.com
+login.tmall.com
 mama.cn
 mediaoffermania.com
 media.tumblr.com
