@@ -123,6 +123,8 @@ class URLLoader(threading.Thread):
                     with open(self.statistics_file, "a") as log_file:
                         log_file.write(statistics_line)
                     break
+        if self.debug:
+            input("Press enter to continue...")
 
         self.driver.close()
         self.driver.quit()
