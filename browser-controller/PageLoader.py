@@ -37,6 +37,9 @@ class PageLoader(threading.Thread):
             # Before connection starts
             self.results["connect_start"] = self.driver.execute_script(
                 "return window.performance.timing.connectStart")
+            # TLS handshake time
+            self.results["secure_conn_start"] = self.driver.execute_script(
+                "return window.performance.timing.secureConnectionStart")
             # Time just after browser receives first byte of response
             self.results["response_start"] = self.driver.execute_script(
                 "return window.performance.timing.responseStart")

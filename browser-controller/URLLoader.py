@@ -93,8 +93,11 @@ class URLLoader(threading.Thread):
                     # Save some statistics
                     time_to_fetch_resources = results["response_end"] - results["connect_start"]
                     connection_setup_latency = results["response_start"] - results["connect_start"]
+                    encryption_setup_latency = results["response_start"] - results["secure_conn_start"]
                     time_to_load_page = results["load_event_end"] - results["connect_start"]
                     statistics_line = str(url) +\
+                        "   " +\
+                        str(encryption_setup_latency) +\
                         "   " +\
                         str(connection_setup_latency) +\
                         "   " +\
