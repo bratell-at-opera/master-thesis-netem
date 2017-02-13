@@ -92,8 +92,11 @@ class URLLoader(threading.Thread):
                 if succeeded and results["load_succeeded"]:
                     # Save some statistics
                     time_to_fetch_resources = results["response_end"] - results["connect_start"]
+                    connection_setup_latency = results["response_start"] - results["connect_start"]
                     time_to_load_page = results["load_event_end"] - results["connect_start"]
                     statistics_line = str(url) +\
+                        "   " +\
+                        str(connection_setup_latency) +\
                         "   " +\
                         str(time_to_fetch_resources) +\
                         "   " +\
@@ -110,11 +113,15 @@ class URLLoader(threading.Thread):
                         "Inf" +\
                         "   " +\
                         "Inf" +\
+                        "   " +\
+                        "Inf" +\
                         "\n"
                     with open(self.statistics_file, "a") as log_file:
                         log_file.write(statistics_line)
                 else:
                     statistics_line = str(url) +\
+                        "   " +\
+                        "Inf" +\
                         "   " +\
                         "Inf" +\
                         "   " +\
