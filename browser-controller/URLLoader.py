@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
 import time
+import os
 import PageLoader
 import selenium.webdriver
 import threading
+# import sys
+# from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.common.keys import Keys
 
 # Description: One UAController per user agent. Start and stop threads which gets content of webpages.
 # If an element of the webpage can't load (happens) loading of the webpage hangs the thread.
@@ -22,12 +26,15 @@ class URLLoader(threading.Thread):
         self.use_quic = use_quic
         self.headless = headless
         self.debug = debug
+        self.path = os.path.dirname(os.path.realpath(__file__))
 
         # Initialize Chromium/Opera
         self.chromium_options = selenium.webdriver.chrome.options.Options()
         self.chromium_options.add_argument('--ignore-certificate-errors')
         self.chromium_options.add_argument('--disable-application-cache')
-        self.chromium_options.add_argument('--host-resolver-rules=MAP * 192.168.100.1, EXCLUDE localhost')
+        self.chromium_options.add_argument(
+            '--host-resolver-rules=MAP * 192.168.100.1, EXCLUDE localhost')
+        self.chromium_options.add_argument('--auto-open-devtools-for-tabs')
         self.chromium_options.binary_location = '/usr/bin/opera'
         if use_quic:
             self.chromium_options.add_argument("--origin-to-force-quic-on=" +
@@ -88,12 +95,14 @@ class URLLoader(threading.Thread):
                 loader = self.load_page("https://" + self.base_url + "/" + url)
                 succeeded = self.wait_for_page_load(loader)
                 results = loader.get_result()
+                print(results["har"])
 
                 if succeeded and results["load_succeeded"]:
                     # Save some statistics
                     time_to_fetch_resources = results["response_end"] - results["connect_start"]
                     connection_setup_latency = results["response_start"] - results["connect_start"]
-                    encryption_setup_latency = results["response_start"] - results["secure_conn_start"]
+                    encryption_setup_latency = results[
+                        "response_start"] - results["secure_conn_start"]
                     time_to_load_page = results["load_event_end"] - results["connect_start"]
                     statistics_line = str(url) +\
                         "   " +\
