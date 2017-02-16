@@ -4,6 +4,9 @@ import time
 import PageLoader
 import selenium.webdriver
 import threading
+import subprocess
+import os
+
 
 # Description: One UAController per user agent. Start and stop threads which gets content of webpages.
 # If an element of the webpage can't load (happens) loading of the webpage hangs the thread.
@@ -28,6 +31,7 @@ class URLLoader(threading.Thread):
         self.chromium_options.add_argument('--ignore-certificate-errors')
         self.chromium_options.add_argument('--disable-application-cache')
         self.chromium_options.add_argument('--host-resolver-rules=MAP * 192.168.100.1, EXCLUDE localhost')
+        self.chromium_options.add_argument('--disk-cache-size=0')
         self.chromium_options.binary_location = '/usr/bin/opera'
         if use_quic:
             self.chromium_options.add_argument("--origin-to-force-quic-on=" +
@@ -53,8 +57,13 @@ class URLLoader(threading.Thread):
         )
         self.driver.implicitly_wait(max(self.timeout - 10, 10))
         # Does not work in S2L,
-        self.driver.set_page_load_timeout(self.timeout)
         # see https://github.com/robotframework/Selenium2Library issue 575 and 532
+        self.driver.set_page_load_timeout(self.timeout)
+        # Wait for launch and then open dev-tools
+        subprocess.run(
+            [os.path.dirname(os.path.abspath(__file__)) + "/opera-controller.bash",
+             "--setup"]
+        )
 
     def load_page(self, url):
         loader = PageLoader.PageLoader(self.driver, url)
@@ -90,6 +99,21 @@ class URLLoader(threading.Thread):
                 results = loader.get_result()
 
                 if succeeded and results["load_succeeded"]:
+                    subprocess.run(
+                        [
+                            os.path.dirname(os.path.abspath(__file__)) +
+                            os.path.sep +
+                            "opera-controller.bash",
+                            "--save-stats",
+                            os.path.dirname(os.path.abspath(__file__)) +
+                            os.path.sep +
+                            ".." +
+                            os.path.sep +
+                            "logs" +
+                            os.path.sep +
+                            "hars"
+                        ]
+                    )
                     # Save some statistics
                     time_to_fetch_resources = results["response_end"] - results["connect_start"]
                     connection_setup_latency = results["response_start"] - results["connect_start"]
