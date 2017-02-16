@@ -151,6 +151,6 @@ fi
 
 # ----------------- TEARDOWN
 # Close web server of some sort
-kill -QUIT $( cat /tmp/netem.server.pid )
+kill -QUIT $( cat $pidFile )
 # Kill selenium
 ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap stop"
