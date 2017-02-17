@@ -34,11 +34,13 @@ fi
 
 # End of ugly hack ---------------------
 
+typing_delay=40 # ms
+# Bring Opera to front
+xdotool windowactivate $opera_window
+# Set window size for proportions to be correct
+xdotool windowsize $opera_window 1920 1100
+
 if [ "$1" = "--setup" ]; then
-    # Bring Opera to front
-    xdotool windowactivate $opera_window
-    # Set window size for proportions to be correct
-    xdotool windowsize $opera_window 1920 1100
     # open dev-tools
     xdotool key --clearmodifiers "Ctrl+Shift_L+i"
     # Activate network tab
@@ -48,23 +50,35 @@ if [ "$1" = "--setup" ]; then
     sleep 1
     xdotool mousemove --window $opera_window 1710 150 click 1
 
-elif [ "$1" = "--save-stats" ] && [ "$#" -eq 2 ]; then
+elif [ "$1" = "--save-stats" ] && [ "$#" -eq 3 ]; then
     directory="$2"
-    # Bring Opera to front
-    xdotool windowactivate $opera_window
-    sleep 1
+    url="$3"
+    mkdir -p $directory
     # Open save dialog
+    sleep 1
     xdotool mousemove --window $opera_window 1710 550 click 3
     sleep 1
     xdotool mousemove --window $opera_window 1720 600 click 1
     sleep 1
     # Type in the appropriate filename
-    xdotool key --delay 20 --clearmodifiers "Home"
-    xdotool type --delay 10 --clearmodifiers "${directory}/"
-    xdotool key --delay 20 --clearmodifiers "Return"
+    xdotool key --delay $typing_delay --clearmodifiers "Ctrl+a"
+    xdotool type --delay $typing_delay --clearmodifiers "${directory}/$url.har"
+    xdotool key --delay $typing_delay --clearmodifiers "Return"
 
     # Wait for the file to be completely saved
     sleep 3
+
+elif [ "$1" = "--go-to" ] && [ "$#" -eq 2 ]; then
+    url="$2"
+    xdotool mousemove --window $opera_window 960 55 click 1
+    sleep 1
+    xdotool key --clearmodifiers "Control+a"
+    sleep 1
+    xdotool key --clearmodifiers "BackSpace"
+    sleep 1
+    xdotool type --delay $typing_delay --clearmodifiers "$url"
+    sleep 1
+    xdotool key --delay $typing_delay --clearmodifiers "Return"
 else
     echo "ERROR: Incorrect usage!"
     exit 1

@@ -44,15 +44,15 @@ if [ "$USER" != "root" ]; then
     printHelp $0 "Must be run as root!"
 fi
 
-netemFolder=$(realpath $(dirname $0))
+netem_folder=$(realpath $(dirname $0))
 myUser=$(logname)
 timeout=60
-maxRetries=3
+max_retries=3
 caddy=/home/fille/go/bin/caddy
 
-limitArgs=""
-
-debugMode=false
+limit_args=""
+urlloader_args=""
+delay=0
 
 # Set extblog extension in bash in order for case-switch to work (disabled when executing script)
 shopt -s extglob
@@ -60,49 +60,67 @@ shopt -s extglob
 for argument in "$@"
 do
     case $argument in
-        # Debug mode does not initialize a virtual display
-        -d|--debug)
-            debugMode=true
-            shift # past argument=value
-            ;;
-        -g|--gui)
-            guiMode=true
-            shift # past argument=value
-            ;;
         -q|--quic)
-            webProtocol="--quic"
+            web_protocol="--quic"
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         -h2|--http2)
-            webProtocol="--http2"
+            web_protocol="--http2"
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         -h1|--http1)
-            webProtocol="--http1"
+            web_protocol="--http1"
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
-        --loss-rate-@(dl|ul)=*)
-            limitArgs="$limitArgs $argument"
+        --loss-rate-ul=*)
+            limit_args="$limit_args $argument"
+            loss_rate_ul=${argument#*=}
             shift
             ;;
-        --delay-@(dl|ul)=*)
-            limitArgs="$limitArgs $argument"
+        --loss-rate-dl=*)
+            limit_args="$limit_args $argument"
+            loss_rate_dl=${argument#*=}
             shift
             ;;
-        --delay-deviation-@(dl|ul)=*)
-            limitArgs="$limitArgs $argument"
+        --delay-ul=*)
+            limit_args="$limit_args $argument"
+            delay_ul=$(( $delay + ${argument#*=} ))
             shift
             ;;
-        --bandwidth-@(dl|ul)=*)
-            limitArgs="$limitArgs $argument"
+        --delay-dl=*)
+            limit_args="$limit_args $argument"
+            delay_dl=$(( $delay + ${argument#*=} ))
+            shift
+            ;;
+        --delay-deviation-ul=*)
+            limit_args="$limit_args $argument"
+            deviation_ul=${argument#*=}
+            shift
+            ;;
+        --delay-deviation-dl=*)
+            limit_args="$limit_args $argument"
+            deviation_dl=${argument#*=}
+            shift
+            ;;
+        --bandwidth-ul=*)
+            limit_args="$limit_args $argument"
+            bandwidth_ul=${argument#*=}
+            shift
+            ;;
+        --bandwidth-ul=*)
+            limit_args="$limit_args $argument"
+            bandwidth_dl=${argument#*=}
             shift
             ;;
         --timeout=*)
-            timeout="${argument#*=}"
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         --max-retries=*)
-            maxRetries="${argument#*=}"
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         *)
@@ -112,45 +130,39 @@ do
 done
 
 
-if [ -z "$webProtocol" ]; then
+if [ -z "$web_protocol" ]; then
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP."
 fi
 
+# Create an unique identifier for this run
+identifier=bw-"$bandwidth_dl"-"$bandwidth_dl"_loss-"$loss_rate_dl"-"$loss_rate_ul"_dev-"$deviation_dl"-"$deviation_ul"_"$(date '+%Y-%m-%d_%H-%M')"
+
+urlloader_args="$urlloader_args --identifier=$identifier"
+
 # Setup link limits
-$netemFolder/net-setup/limit-bottleneck.bash $limitArgs
+$netem_folder/net-setup/limit-bottleneck.bash $limit_args
 if [ $? != 0 ]; then
     echo "ERROR: Failed to limit network links!"
     exit 3
 fi
 
 # ------------------ RUN
-pidFile="/tmp/netem.server.pid"
-touch $pidFile
+pid_file="/tmp/netem.server.pid"
+touch $pid_file
 # Setup a webserver of some sort
-if [ "$webProtocol" = "--http2" ]; then
-    ip netns exec server-ns $caddy -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
-elif [ "$webProtocol" = "--quic" ]; then
-    ip netns exec server-ns $caddy -quic -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
-elif [ $webProtocol = "--http1" ]; then
-    ip netns exec server-ns $caddy -http2=false -conf="$netemFolder/config/netem.Caddyfile" -pidfile="$pidFile" &
+if [ "$web_protocol" = "--http2" ]; then
+    ip netns exec server-ns $caddy -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+elif [ "$web_protocol" = "--quic" ]; then
+    ip netns exec server-ns $caddy -quic -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+elif [ $web_protocol = "--http1" ]; then
+    ip netns exec server-ns $caddy -http2=false -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
 else
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP1."
 fi
 
-
-# Start Selenium
-ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap start"
 # Run browser
-if [ "$debugMode" = true ]; then
-    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --debug"
-elif [ "$guiMode" = true ]; then
-    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout --with-gui"
-else
-    ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/starter.bash $webProtocol $maxRetries $timeout"
-fi
+ip netns exec client-ns2 su $myUser -c "$netem_folder/browser-controller/urlloader.bash $urlloader_args"
 
 # ----------------- TEARDOWN
 # Close web server of some sort
-kill -QUIT $( cat $pidFile )
-# Kill selenium
-ip netns exec client-ns2 su $myUser -c "$netemFolder/browser-controller/selenium-bootstrap stop"
+kill -QUIT $( cat $pid_file )

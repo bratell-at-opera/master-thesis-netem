@@ -1,7 +1,10 @@
 #!/bin/bash
 
 this_folder=$(dirname $(realpath $0))
+netem_folder=$(realpath $this_folder/..)
 opera_controller="$this_folder/opera-controller.bash"
+timeout=60
+
 # Set extblog extension in bash in order for case-switch to work (disabled when executing script)
 shopt -s extglob
 # Handle in-arguments
@@ -20,28 +23,16 @@ do
             web_protocol="--http1"
             shift
             ;;
-        --loss-rate-@(dl|ul)=*)
-            :
-            shift
-            ;;
-        --delay-@(dl|ul)=*)
-            :
-            shift
-            ;;
-        --delay-deviation-@(dl|ul)=*)
-            :
-            shift
-            ;;
-        --bandwidth-@(dl|ul)=*)
-            :
-            shift
-            ;;
         --timeout=*)
-            :
+            timeout=${argument#*=}
             shift
             ;;
         --max-retries=*)
             :
+            shift
+            ;;
+        --identifier=*)
+            identifier=${argument#*=}
             shift
             ;;
         *)
@@ -51,21 +42,27 @@ do
     esac
 done
 
-# Start Opera
-opera_options='--ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0'
+# Clear profile dir
+profile_dir="/tmp/netem.opera"
+rm -rf $profile_dir/*
 
+# Start Opera
 if [ "$web_protocol" = "--quic" ]; then
-    opera_options="$opera_options --enable-quic --origin-to-force-quic-on=web.hfelo.se:443"
+    opera --enable-quic --origin-to-force-quic-on=web.hfelo.se:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 about:blank &
+else
+    opera --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 about:blank &
 fi
 
-opera $opera_options &
+sleep 2
 $opera_controller --setup
+sleep 2
 
 # Enter URLS
-for url in $(cat $this_folder/../config/urls.txt); do
-    $opera_controller --go-to $url
-    sleep 60
-    $opera_controller --save-stats $this_folder/logs/hars
-done
+while read url
+do
+    $opera_controller --go-to "https://web.hfelo.se/$url"
+    sleep $timeout
+    $opera_controller --save-stats $netem_folder/logs/hars/$identifier $url
+done < $this_folder/../config/urls.txt
 
 
