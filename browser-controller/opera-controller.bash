@@ -56,9 +56,9 @@ elif [ "$1" = "--save-stats" ] && [ "$#" -eq 3 ]; then
     mkdir -p $directory
     # Open save dialog
     sleep 1
-    xdotool mousemove --window $opera_window 1710 550 click 3
+    xdotool mousemove --window $opera_window 1670 350 click 3
     sleep 1
-    xdotool mousemove --window $opera_window 1720 600 click 1
+    xdotool mousemove --window $opera_window 1680 400 click 1
     sleep 1
     # Type in the appropriate filename
     xdotool key --delay $typing_delay --clearmodifiers "Ctrl+a"
