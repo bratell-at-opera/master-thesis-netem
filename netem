@@ -23,7 +23,7 @@ function printHelp {
     echo "-q|--quic"
     echo "      Use a web server serving pages using QUIC."
     echo ""
-    echo "--loss-rate-dl= / --loss-rate-ul="
+    echo "--loss-dl= / --loss-ul="
     echo "      Specify the loss rate on the down-link/up-link given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. "
     echo ""
     echo "--delay-dl= / --delay-ul"
@@ -32,11 +32,8 @@ function printHelp {
     echo "--delay-deviation-dl= / --delay-deviation-ul"
     echo "      Specify the standard deviation of the delay ms on the down-link/up-link. "
     echo ""
-    echo "--loss-rate-dl= / --loss-rate-ul"
-    echo "      Specify the tandard deviation of the delay ms on the down-link/up-link. "
-    echo ""
     echo "--bandwidth-dl= / --bandwidth-ul"
-    echo "      Specify the tandard deviation of the delay ms on the down-link/up-link. "
+    echo "      Specify the bandiwdth in Mbit/s on down-link/up-link"
     exit 1
 }
 
@@ -63,6 +60,7 @@ do
         -q|--quic)
             web_protocol="--quic"
             urlloader_args="$urlloader_args $argument"
+            proto_identifier="QUIC"
             shift
             ;;
         -h2|--http2)
@@ -75,12 +73,12 @@ do
             urlloader_args="$urlloader_args $argument"
             shift
             ;;
-        --loss-rate-ul=*)
+        --loss-ul=*)
             limit_args="$limit_args $argument"
             loss_rate_ul=${argument#*=}
             shift
             ;;
-        --loss-rate-dl=*)
+        --loss-dl=*)
             limit_args="$limit_args $argument"
             loss_rate_dl=${argument#*=}
             shift
@@ -110,7 +108,7 @@ do
             bandwidth_ul=${argument#*=}
             shift
             ;;
-        --bandwidth-ul=*)
+        --bandwidth-dl=*)
             limit_args="$limit_args $argument"
             bandwidth_dl=${argument#*=}
             shift
@@ -134,8 +132,8 @@ if [ -z "$web_protocol" ]; then
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP."
 fi
 
-# Create an unique identifier for this run
-identifier=bw-"$bandwidth_dl"-"$bandwidth_dl"_loss-"$loss_rate_dl"-"$loss_rate_ul"_dev-"$deviation_dl"-"$deviation_ul"_"$(date '+%Y-%m-%d_%H-%M')"
+# Create an unique identifier for this r-un
+identifier="$proto_identifier"-bw-"$bandwidth_dl"-"$bandwidth_dl"-loss-"$loss_rate_dl"-"$loss_rate_ul"-dev-"$deviation_dl"-"$deviation_ul"-"$(date '+%Y-%m-%d-%H-%M')"
 
 urlloader_args="$urlloader_args --identifier=$identifier"
 

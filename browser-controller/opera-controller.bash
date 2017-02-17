@@ -34,7 +34,7 @@ fi
 
 # End of ugly hack ---------------------
 
-typing_delay=40 # ms
+typing_delay=80 # ms
 # Bring Opera to front
 xdotool windowactivate $opera_window
 # Set window size for proportions to be correct

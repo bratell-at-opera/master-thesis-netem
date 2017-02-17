@@ -5,7 +5,7 @@ set -e
 for inArg in "$@"
 do
     case $inArg in
-        "--loss-rate-dl="*)
+        "--loss-dl="*)
             lossRateDown="${inArg#*=}"
             shift
             ;;
@@ -21,7 +21,7 @@ do
             bandwidthDown="${inArg#*=}"
             shift
             ;;
-        "--loss-rate-ul="*)
+        "--loss-ul="*)
             lossRateUp="${inArg#*=}"
             shift
             ;;
