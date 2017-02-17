@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import threading
+import os
+import subprocess
 
 # Description: Loads a web page with a given webdriver
 
@@ -22,11 +24,20 @@ class PageLoader(threading.Thread):
     def run(self):
         try:
             old_page = self.driver.find_element_by_tag_name("html")
-            self.driver.get(self.url)
 
             # Wait for page load, this is workaround for
             # issue mentioned in init of browser-runner
             new_page = old_page
+
+            subprocess.run(
+                [
+                    os.path.dirname(os.path.abspath(__file__)) +
+                    os.path.sep +
+                    "opera-controller.bash",
+                    "--go-to",
+                    self.url
+                ]
+            )
             while new_page.id == old_page.id:
                 new_page = self.driver.find_element_by_tag_name("html")
 
