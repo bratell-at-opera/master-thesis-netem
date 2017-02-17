@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import matplotlib
+import json
+
+if len(sys.argv) != 2:
+    print("Incorrect usage!")
+    print("")
+    print("Usage: ")
+    print("     " + sys.argv[0] + "path/to/HTTP/archives")
+
+path_to_statistics = sys.argv[1]
+webpages = {}
+
+for har_file in os.listdir(path_to_statistics):
+    if ".har" not in har_file:
+        print(har_file + "does not contain .har, will skip this file.")
+        continue
+
+    url = har_file.replace(".har", "")
+    webpages[url] = {}
+
+    with open(har_file) as data_file:
+        data = json.load(data_file)
+
+        for request in data['entries']:
+            if "response" in request:
+                resonse = request["response"]
+                if "status" in response:
