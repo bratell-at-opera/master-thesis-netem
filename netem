@@ -133,7 +133,7 @@ if [ -z "$web_protocol" ]; then
 fi
 
 # Create an unique identifier for this r-un
-identifier="$proto_identifier"-bw-"$bandwidth_dl"-"$bandwidth_dl"-loss-"$loss_rate_dl"-"$loss_rate_ul"-dev-"$deviation_dl"-"$deviation_ul"-
+identifier="$proto_identifier"-bw-"$bandwidth_dl"-"$bandwidth_ul"-loss-"$loss_rate_dl"-"$loss_rate_ul"-dev-"$deviation_dl"-"$deviation_ul"-
 identifier="$identifier""$(date '+%Y-%m-%d-%H-%M')"
 
 urlloader_args="$urlloader_args --identifier=$identifier"
@@ -165,3 +165,4 @@ ip netns exec client-ns2 su $myUser -c "$netem_folder/browser-controller/urlload
 # ----------------- TEARDOWN
 # Close web server of some sort
 kill -QUIT $( cat $pid_file )
+
