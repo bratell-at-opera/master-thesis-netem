@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import statistics
+import sys
+import json
+
+
+data = json.load(sys.stdin)
+
+values = []
+urls = []
+for url, stats_list in data["webpages"].items():
+    for stat in stats_list:
+        if stat["status"] is True:
+            values.append(stat["time"])
+
+median_load_time = statistics.median(values)
+max_load_time = max(values)
+min_load_time = min(values)
+avg_load_time = statistics.mean(values)
+deviation = statistics.stdev(values)
+
+
+print("Avg load time: " + str(avg_load_time))
+print("Median load time: " + str(median_load_time))
+print("Stddev: " + str(deviation))
+print("Max load time: " + str(max_load_time))
+print("Min load time: " + str(min_load_time))

@@ -135,12 +135,19 @@ for folder in matching_folders:
                 data = json.load(data_file)["log"]
             except json.decoder.JSONDecodeError as e:
                 sys.stderr.write("Incorrect json file for url: " + url + "\n")
-                sys.stderr.write(str(e) + ": " + e.msg + "\n")
+                sys.stderr.write(str(e) + ": " + e.msg + "\n\n")
                 current_stats["status"] = False
                 current_stats["error"] = "Incorrect json file"
+                output_log["webpages"][url].append(current_stats)
                 continue
-            current_stats["time"] = \
-                max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+
+            time = max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+            if not time:
+                current_stats["status"] = False
+                current_stats["error"] = "No page load time found!"
+                output_log["webpages"][url].append(current_stats)
+                continue
+            current_stats["time"] = time
             current_stats["resource_count"] = 0
             current_stats["total_bytes_fetched"] = 0
 
@@ -167,4 +174,4 @@ for folder in matching_folders:
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
 
-sys.stdout.write(output_log)
+sys.stdout.write(json.dumps(output_log))
