@@ -111,7 +111,6 @@ for folder in os.listdir(path_to_statistics):
     if match_string in folder:
         matching_folders.append(folder)
 
-
 # Generate some statistics (finally!)
 output_log = identifiers
 output_log["webpages"] = {}
@@ -168,4 +167,4 @@ for folder in matching_folders:
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
 
-print(output_log)
+sys.stdout.write(output_log)
