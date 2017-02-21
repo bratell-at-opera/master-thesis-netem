@@ -12,49 +12,106 @@ with open(quic_filename) as quic_file:
 
         quick_data = json.load(quic_file)
         http2_data = json.load(http2_file)
-        quic_wins = 0
-        http2_wins = 0
+        quic_time_wins = 0
+        http2_time_wins = 0
+        quic_resources_wins = 0
+        http2_resources_wins = 0
+        quic_bytes_wins = 0
+        http2_bytes_wins = 0
+        quic_same_resource_wins = 0
+        http2_same_resource_wins = 0
         total_pages = 0
 
-        print("Avg load times for:\n  URL     QUIC        HTTP2     FASTEST_PROTOCOL")
-        print("---------------------------------------------------------------------")
+        print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format("URL",
+                                                             "Fastest",
+                                                             "Most_resources",
+                                                             "Most_bytes")
+        print(print_line)
+        print("---------------------------------")
 
         for url, quic_stats_list in quick_data["webpages"].items():
             if url not in http2_data["webpages"]:
                 continue
 
             http2_stats_list = http2_data["webpages"][url]
-            total_quic = 0
-            total_http2 = 0
+            total_quic_time = 0
+            total_http2_time = 0
+            total_quic_resources = 0
+            total_http2_resources = 0
+            total_quic_bytes = 0
+            total_http2_bytes = 0
             divisor_quic = 0
             divisor_http2 = 0
 
             for stat in quic_stats_list:
                 if stat["status"] is True:
-                    total_quic = total_quic + stat["time"]
+                    total_quic_time = total_quic_time + stat["time"]
+                    total_quic_resources = total_quic_resources + stat["resource_count"]
+                    total_quic_bytes = total_quic_bytes + stat["total_bytes_fetched"]
                     divisor_quic = divisor_quic + 1
             for stat in http2_stats_list:
                 if stat["status"] is True:
-                    total_http2 = total_http2 + stat["time"]
+                    total_http2_time = total_http2_time + stat["time"]
+                    total_http2_resources = total_http2_resources + stat["resource_count"]
+                    total_http2_bytes = total_http2_bytes + stat["total_bytes_fetched"]
                     divisor_http2 = divisor_http2 + 1
             if divisor_quic == 0 or divisor_http2 == 0:
                 continue
 
-            quic_mean = total_quic / divisor_quic
-            http2_mean = total_http2 / divisor_http2
-            fastest = None
+            quic_mean_time = total_quic_time / divisor_quic
+            http2_mean_time = total_http2_time / divisor_http2
+            quic_mean_resources = total_quic_resources / divisor_quic
+            http2_mean_resources = total_http2_resources / divisor_quic
+            quic_mean_bytes = total_quic_bytes / divisor_quic
+            http2_mean_bytes = total_http2_bytes / divisor_quic
 
-            if quic_mean < http2_mean:
+            fastest = "Tie"
+            most_resources = "Tie"
+            most_bytes = "Tie"
+
+            if quic_mean_time < http2_mean_time:
                 fastest = "QUIC"
-                quic_wins = quic_wins + 1
-            elif http2_mean < quic_mean:
+                quic_time_wins = quic_time_wins + 1
+            elif http2_mean_time < quic_mean_time:
                 fastest = "HTTP2"
-                http2_wins = http2_wins + 1
+                http2_time_wins = http2_time_wins + 1
+
+            if quic_mean_resources > http2_mean_resources:
+                most_resources = "QUIC"
+                quic_resources_wins = quic_resources_wins + 1
+            elif http2_mean_resources > quic_mean_resources:
+                most_resources = "HTTP2"
+                http2_resources_wins = http2_resources_wins + 1
             else:
-                fastest = "Tie"
+                if fastest == "QUIC":
+                    quic_same_resource_wins = quic_same_resource_wins + 1
+                elif fastest == "HTTP2":
+                    http2_same_resource_wins = http2_same_resource_wins + 1
+
+            if quic_mean_bytes > http2_mean_bytes:
+                most_bytes = "QUIC"
+                quic_bytes_wins = quic_bytes_wins + 1
+            elif http2_mean_bytes > quic_mean_resources:
+                most_bytes = "HTTP2"
+                http2_bytes_wins = http2_bytes_wins + 1
+
             total_pages = total_pages + 1
-            print(" " + url + "     " + str(quic_mean) + "      " + str(http2_mean) + "     " + fastest)
+            print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format(url, fastest, most_resources, most_bytes)
+            print(print_line)
         print("")
-        print("QUIC is faster in " + str(quic_wins) + " of the tested web pages.")
-        print("HTTP2 is faster in " + str(http2_wins) + " of the tested web pages.")
+        print("SUMMARY")
+        print("----------------------")
+        print("In case both fetches same ammount of resources, QUIC is faster " +
+              str(quic_same_resource_wins) +
+              " times and HTTP2 is faster " +
+              str(http2_same_resource_wins) +
+              " times")
+        print("")
+        print("QUIC is faster in " + str(quic_time_wins) + " of the tested web pages.")
+        print("HTTP2 is faster in " + str(http2_time_wins) + " of the tested web pages.")
+        print("QUIC fetches more resources in " + str(quic_resources_wins) + " of the tested web pages.")
+        print("HTTP2 fetches more resources in " + str(http2_resources_wins) + " of the tested web pages.")
+        print("QUIC fetches more bytes in " + str(quic_bytes_wins) + " of the tested web pages.")
+        print("HTTP2 fetches more bytes in " + str(http2_bytes_wins) + " of the tested web pages.")
+
         print("Total nr of tested web-pages: " + str(total_pages))
