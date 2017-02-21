@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+
+import sys
+import json
+
+
+quic_filename = sys.argv[1]
+http2_filename = sys.argv[2]
+
+with open(quic_filename) as quic_file:
+    with open(http2_filename) as http2_file:
+
+        quick_data = json.load(quic_file)
+        http2_data = json.load(http2_file)
+        quic_wins = 0
+        http2_wins = 0
+        total_pages = 0
+
+        print("Avg load times for:\n  URL     QUIC        HTTP2     FASTEST_PROTOCOL")
+        print("---------------------------------------------------------------------")
+
+        for url, quic_stats_list in quick_data["webpages"].items():
+            if url not in http2_data["webpages"]:
+                continue
+
+            http2_stats_list = http2_data["webpages"][url]
+            total_quic = 0
+            total_http2 = 0
+            divisor_quic = 0
+            divisor_http2 = 0
+
+            for stat in quic_stats_list:
+                if stat["status"] is True:
+                    total_quic = total_quic + stat["time"]
+                    divisor_quic = divisor_quic + 1
+            for stat in http2_stats_list:
+                if stat["status"] is True:
+                    total_http2 = total_http2 + stat["time"]
+                    divisor_http2 = divisor_http2 + 1
+            if divisor_quic == 0 or divisor_http2 == 0:
+                continue
+
+            quic_mean = total_quic / divisor_quic
+            http2_mean = total_http2 / divisor_http2
+            fastest = None
+
+            if quic_mean < http2_mean:
+                fastest = "QUIC"
+                quic_wins = quic_wins + 1
+            elif http2_mean < quic_mean:
+                fastest = "HTTP2"
+                http2_wins = http2_wins + 1
+            else:
+                fastest = "Tie"
+            total_pages = total_pages + 1
+            print(" " + url + "     " + str(quic_mean) + "      " + str(http2_mean) + "     " + fastest)
+        print("")
+        print("QUIC is faster in " + str(quic_wins) + " of the tested web pages.")
+        print("HTTP2 is faster in " + str(http2_wins) + " of the tested web pages.")
+        print("Total nr of tested web-pages: " + str(total_pages))

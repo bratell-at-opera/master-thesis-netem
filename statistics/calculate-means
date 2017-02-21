@@ -8,8 +8,9 @@ import json
 data = json.load(sys.stdin)
 
 values = []
-urls = []
+urls = 0
 for url, stats_list in data["webpages"].items():
+    urls = urls + 1
     for stat in stats_list:
         if stat["status"] is True:
             values.append(stat["time"])
@@ -26,3 +27,4 @@ print("Median load time: " + str(median_load_time))
 print("Stddev: " + str(deviation))
 print("Max load time: " + str(max_load_time))
 print("Min load time: " + str(min_load_time))
+print("Nr of sites loaded: " + str(urls))
