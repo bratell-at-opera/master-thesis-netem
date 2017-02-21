@@ -112,7 +112,8 @@ with open(quic_filename) as quic_file:
         print("")
         print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
         print("----------------------")
-        print(str())
+        quic_data["identifiers"].pop("web_protocol", None)
+        print(str(quic_data["identifiers"]))
         print("----------------------")
         print("In case both fetches same ammount of resources (" +
               str(total_pages - quic_resources_wins - http2_resources_wins) +
