@@ -112,7 +112,8 @@ for folder in os.listdir(path_to_statistics):
         matching_folders.append(folder)
 
 # Generate some statistics (finally!)
-output_log = identifiers
+output_log = {}
+output_log["identifiers"] = identifiers
 output_log["webpages"] = {}
 
 for folder in matching_folders:

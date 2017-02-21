@@ -9,9 +9,17 @@ http2_filename = sys.argv[2]
 
 with open(quic_filename) as quic_file:
     with open(http2_filename) as http2_file:
-
-        quick_data = json.load(quic_file)
+        quic_data = json.load(quic_file)
         http2_data = json.load(http2_file)
+
+        for key in quic_data["identifiers"].keys():
+            if key != "web_protocol":
+                if quic_data["identifiers"][key] != http2_data["identifiers"][key]:
+                    sys.stderr.write("You are comparing apples and pears!\n")
+                    sys.stderr.write(str(quic_data["identifiers"]) + "\n")
+                    sys.stderr.write(str(http2_data["identifiers"]) + "\n")
+                    sys.exit(1)
+
         quic_time_wins = 0
         http2_time_wins = 0
         quic_resources_wins = 0
@@ -30,7 +38,7 @@ with open(quic_filename) as quic_file:
         print(print_line)
         print("---------------------------------")
 
-        for url, quic_stats_list in quick_data["webpages"].items():
+        for url, quic_stats_list in quic_data["webpages"].items():
             if url not in http2_data["webpages"]:
                 continue
 
@@ -103,6 +111,8 @@ with open(quic_filename) as quic_file:
             print(print_line)
         print("")
         print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
+        print("----------------------")
+        print(str())
         print("----------------------")
         print("In case both fetches same ammount of resources (" +
               str(total_pages - quic_resources_wins - http2_resources_wins) +
