@@ -66,11 +66,13 @@ do
         -h2|--http2)
             web_protocol="--http2"
             urlloader_args="$urlloader_args $argument"
+            proto_identifier="HTTP2"
             shift
             ;;
         -h1|--http1)
             web_protocol="--http1"
             urlloader_args="$urlloader_args $argument"
+            proto_identifier="HTTP"
             shift
             ;;
         --loss-ul=*)
