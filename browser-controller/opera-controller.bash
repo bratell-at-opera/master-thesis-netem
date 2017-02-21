@@ -33,6 +33,7 @@ if [ -z "$opera_window" ]; then
 fi
 
 # End of ugly hack ---------------------
+# Well no this whole xdotool-thing is a hack :D
 
 typing_delay=80 # ms
 # Bring Opera to front
