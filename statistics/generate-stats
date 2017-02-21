@@ -157,20 +157,24 @@ for folder in matching_folders:
 
                     if "status" in response:
 
+                        # Count nr resources fetched
                         if response["status"] == 200:
-                            # Count nr resources fetched
-                            current_stats["resource_count"] = \
-                                current_stats["resource_count"] + 1
-                            # Count the time
-                            if type(http_pair["time"]) == "float":
-                                current_stats["time"] = \
-                                    max(
-                                        http_pair["time"],
-                                        current_stats["time"])
-                            # Add resource size to statistics
-                            current_stats["total_bytes_fetched"] = \
-                                current_stats["total_bytes_fetched"] +\
-                                response["content"]["size"]
+                            error_key_exist = "_error" in response
+                            if error_key_exist is True and response["_error"] != "":
+                                pass
+                            else:
+                                current_stats["resource_count"] = \
+                                    current_stats["resource_count"] + 1
+                        # Count the time
+                        if type(http_pair["time"]) == "float":
+                            current_stats["time"] = \
+                                max(
+                                    http_pair["time"],
+                                    current_stats["time"])
+                        # Add resource size to statistics
+                        current_stats["total_bytes_fetched"] = \
+                            current_stats["total_bytes_fetched"] +\
+                            response["content"]["size"]
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
 

@@ -21,6 +21,7 @@ with open(quic_filename) as quic_file:
         quic_same_resource_wins = 0
         http2_same_resource_wins = 0
         total_pages = 0
+        buffer_bytes = 1024
 
         print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format("URL",
                                                              "Fastest",
@@ -58,12 +59,14 @@ with open(quic_filename) as quic_file:
             if divisor_quic == 0 or divisor_http2 == 0:
                 continue
 
+            # Mean stats for QUIC
             quic_mean_time = total_quic_time / divisor_quic
-            http2_mean_time = total_http2_time / divisor_http2
             quic_mean_resources = total_quic_resources / divisor_quic
-            http2_mean_resources = total_http2_resources / divisor_quic
             quic_mean_bytes = total_quic_bytes / divisor_quic
-            http2_mean_bytes = total_http2_bytes / divisor_quic
+            # Mean stats for HTTP2
+            http2_mean_resources = total_http2_resources / divisor_http2
+            http2_mean_time = total_http2_time / divisor_http2
+            http2_mean_bytes = total_http2_bytes / divisor_http2
 
             fastest = "Tie"
             most_resources = "Tie"
@@ -88,10 +91,10 @@ with open(quic_filename) as quic_file:
                 elif fastest == "HTTP2":
                     http2_same_resource_wins = http2_same_resource_wins + 1
 
-            if quic_mean_bytes > http2_mean_bytes:
+            if quic_mean_bytes > http2_mean_bytes + buffer_bytes:
                 most_bytes = "QUIC"
                 quic_bytes_wins = quic_bytes_wins + 1
-            elif http2_mean_bytes > quic_mean_resources:
+            elif http2_mean_bytes > quic_mean_resources + buffer_bytes:
                 most_bytes = "HTTP2"
                 http2_bytes_wins = http2_bytes_wins + 1
 
@@ -99,19 +102,24 @@ with open(quic_filename) as quic_file:
             print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format(url, fastest, most_resources, most_bytes)
             print(print_line)
         print("")
-        print("SUMMARY")
+        print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
         print("----------------------")
-        print("In case both fetches same ammount of resources, QUIC is faster " +
+        print("In case both fetches same ammount of resources (" +
+              str(total_pages - quic_resources_wins - http2_resources_wins) +
+              " websites), QUIC is faster on " +
               str(quic_same_resource_wins) +
-              " times and HTTP2 is faster " +
+              " sites and HTTP2 is faster on " +
               str(http2_same_resource_wins) +
-              " times")
+              " sites")
         print("")
-        print("QUIC is faster in " + str(quic_time_wins) + " of the tested web pages.")
-        print("HTTP2 is faster in " + str(http2_time_wins) + " of the tested web pages.")
-        print("QUIC fetches more resources in " + str(quic_resources_wins) + " of the tested web pages.")
-        print("HTTP2 fetches more resources in " + str(http2_resources_wins) + " of the tested web pages.")
-        print("QUIC fetches more bytes in " + str(quic_bytes_wins) + " of the tested web pages.")
-        print("HTTP2 fetches more bytes in " + str(http2_bytes_wins) + " of the tested web pages.")
+        print("QUIC is faster on " + str(quic_time_wins) + " of the tested web pages.")
+        print("HTTP2 is faster on " + str(http2_time_wins) + " of the tested web pages.")
+        print("")
+        print("QUIC fetches more resources on " + str(quic_resources_wins) + " of the tested web pages.")
+        print("HTTP2 fetches more resources on " + str(http2_resources_wins) + " of the tested web pages.")
+        print("")
+        print("QUIC fetches more bytes on " + str(quic_bytes_wins) + " of the tested web pages.")
+        print("HTTP2 fetches more bytes on " + str(http2_bytes_wins) + " of the tested web pages.")
 
+        print("")
         print("Total nr of tested web-pages: " + str(total_pages))
