@@ -132,6 +132,10 @@ do
             urlloader_args="$urlloader_args $argument"
             shift
             ;;
+        --max-retries=*)
+            urlloader_args="$urlloader_args $argument"
+            shift
+            ;;
         *)
             printHelp $0 "Invalid argument: $argument"
             ;;
@@ -183,5 +187,9 @@ ip netns exec client-ns2 su $myUser -c "$netem_folder/browser-controller/urlload
 
 # ----------------- TEARDOWN
 # Close web server of some sort
-kill -QUIT $( cat $pid_file )
+if [ "$proto_quic" = true ]; then
+    killall $quic_server
+else
+    kill -QUIT $( cat $pid_file )
+fi
 

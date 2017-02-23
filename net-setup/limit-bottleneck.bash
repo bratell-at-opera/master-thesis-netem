@@ -78,22 +78,33 @@ if [ -n "$bandwidthDown" ]; then
     nrQdiscs=$(($nrQdiscs + 1))
 fi
 
-
-# Delay and loss
-tcCommandDelayLoss=""
+# Loss
 if [ $nrQdiscs -gt 0 ]; then
-    tcCommandDelayLoss="tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $bufferSize"
+    tcCommandLoss="tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $bufferSize"
 else
-    tcCommandDelayLoss="tc -s qdisc replace dev veth2 root handle 1:0 netem limit $bufferSize"
+    tcCommandLoss="tc -s qdisc replace dev veth2 root handle 1:0 netem limit $bufferSize"
+fi
+
+if [ "$lossRateDown" ]; then
+    tcCommandLoss="$tcCommandLoss loss "$lossRateDown"% 25%"
+    nrQdiscs=$(($nrQdiscs + 1))
+fi
+
+# Delay
+tcCommandDelay=""
+if [ $nrQdiscs -gt 0 ]; then
+    tcCommandDelay="tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $bufferSize"
+else
+    tcCommandDelay="tc -s qdisc replace dev veth2 root handle 1:0 netem limit $bufferSize"
 fi
 
 
 if [ -n "$meanDelayDown" ] && [ -n "$delayDeviationDown" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss delay "$meanDelayDown"ms "$delayDeviationDown"ms distribution normal"
+    tcCommandDelay="$tcCommandDelay delay "$meanDelayDown"ms "$delayDeviationDown"ms distribution normal"
     nrQdiscs=$(($nrQdiscs + 1))
 
 elif [ -n "$meanDelayDown" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss delay "$meanDelayDown"ms"
+    tcCommandDelay="$tcCommandDelay delay "$meanDelayDown"ms"
     nrQdiscs=$(($nrQdiscs + 1))
 elif [ -n "$delayDeviationDown" ] && [ -z "$meanDelayDown"]; then
     echo "ERROR: You can't set a delay deviation without setting a delay!!"
@@ -101,13 +112,8 @@ elif [ -n "$delayDeviationDown" ] && [ -z "$meanDelayDown"]; then
     exit 11
 fi
 
-# Loss
-if [ "$lossRateUp" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss loss "$lossRateDown"% 25%"
-fi
-
-eval "$tcCommandDelayLoss"
-
+eval "$tcCommandLoss"
+eval "$tcCommandDelay"
 
 # Now do uplink! ---------------------------------------------------------------------
 nrQdiscs=0
@@ -123,20 +129,20 @@ fi
 
 
 # Delay and loss
-tcCommandDelayLoss=""
+tcCommandDelay=""
 if [ $nrQdiscs -gt 0 ]; then
-    tcCommandDelayLoss="tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $bufferSize"
+    tcCommandDelay="tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $bufferSize"
 else
-    tcCommandDelayLoss="tc -s qdisc replace dev veth3 root handle 1:0 netem limit $bufferSize"
+    tcCommandDelay="tc -s qdisc replace dev veth3 root handle 1:0 netem limit $bufferSize"
 fi
 
 
 if [ -n "$meanDelayUp" ] && [ -n "$delayDeviationUp" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss delay "$meanDelayUp"ms "$delayDeviationUp"ms distribution normal"
+    tcCommandDelay="$tcCommandDelay delay "$meanDelayUp"ms "$delayDeviationUp"ms distribution normal"
     nrQdiscs=$(($nrQdiscs + 1))
 
 elif [ -n "$meanDelayUp" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss delay "$meanDelayUp"ms"
+    tcCommandDelay="$tcCommandDelay delay "$meanDelayUp"ms"
     nrQdiscs=$(($nrQdiscs + 1))
 elif [ -n "$delayDeviationUp" ] && [ -z "$meanDelayUp"]; then
     echo "ERROR: You can't set a delay deviation without setting a delay!!"
@@ -146,10 +152,10 @@ fi
 
 # Loss
 if [ "$lossRateUp" ]; then
-    tcCommandDelayLoss="$tcCommandDelayLoss loss "$lossRateUp"% 25%"
+    tcCommandDelay="$tcCommandDelay loss "$lossRateUp"% 25%"
 fi
 
-eval "$tcCommandDelayLoss"
+eval "$tcCommandDelay"
 
 
 # Enforce MTU sized packets only ---------------------------
