@@ -4,30 +4,32 @@ import sys
 import json
 
 
-quic_filename = sys.argv[1]
-http2_filename = sys.argv[2]
+proto1_filename = sys.argv[1]
+proto2_filename = sys.argv[2]
 
-with open(quic_filename) as quic_file:
-    with open(http2_filename) as http2_file:
-        quic_data = json.load(quic_file)
-        http2_data = json.load(http2_file)
+with open(proto1_filename) as proto1_file:
+    with open(proto2_filename) as proto2_file:
+        proto1_data = json.load(proto1_file)
+        proto2_data = json.load(proto2_file)
+        proto1_name = proto1_data["identifiers"]["web_protocol"]
+        proto2_name = proto2_data["identifiers"]["web_protocol"]
 
-        for key in quic_data["identifiers"].keys():
+        for key in proto1_data["identifiers"].keys():
             if key != "web_protocol":
-                if quic_data["identifiers"][key] != http2_data["identifiers"][key]:
+                if proto1_data["identifiers"][key] != proto2_data["identifiers"][key]:
                     sys.stderr.write("You are comparing apples and pears!\n")
-                    sys.stderr.write(str(quic_data["identifiers"]) + "\n")
-                    sys.stderr.write(str(http2_data["identifiers"]) + "\n")
+                    sys.stderr.write(str(proto1_data["identifiers"]) + "\n")
+                    sys.stderr.write(str(proto2_data["identifiers"]) + "\n")
                     sys.exit(1)
 
-        quic_time_wins = 0
-        http2_time_wins = 0
-        quic_resources_wins = 0
-        http2_resources_wins = 0
-        quic_bytes_wins = 0
-        http2_bytes_wins = 0
-        quic_same_resource_wins = 0
-        http2_same_resource_wins = 0
+        proto1_time_wins = 0
+        proto2_time_wins = 0
+        proto1_resources_wins = 0
+        proto2_resources_wins = 0
+        proto1_bytes_wins = 0
+        proto2_bytes_wins = 0
+        proto1_same_resource_wins = 0
+        proto2_same_resource_wins = 0
         total_pages = 0
         buffer_bytes = 1024
 
@@ -38,73 +40,73 @@ with open(quic_filename) as quic_file:
         print(print_line)
         print("---------------------------------")
 
-        for url, quic_stats_list in quic_data["webpages"].items():
-            if url not in http2_data["webpages"]:
+        for url, proto1_stats_list in proto1_data["webpages"].items():
+            if url not in proto2_data["webpages"]:
                 continue
 
-            http2_stats_list = http2_data["webpages"][url]
-            total_quic_time = 0
-            total_http2_time = 0
-            total_quic_resources = 0
-            total_http2_resources = 0
-            total_quic_bytes = 0
-            total_http2_bytes = 0
-            divisor_quic = 0
-            divisor_http2 = 0
+            proto2_stats_list = proto2_data["webpages"][url]
+            total_proto1_time = 0
+            total_proto2_time = 0
+            total_proto1_resources = 0
+            total_proto2_resources = 0
+            total_proto1_bytes = 0
+            total_proto2_bytes = 0
+            divisor_proto1 = 0
+            divisor_proto2 = 0
 
-            for stat in quic_stats_list:
+            for stat in proto1_stats_list:
                 if stat["status"] is True:
-                    total_quic_time = total_quic_time + stat["time"]
-                    total_quic_resources = total_quic_resources + stat["resource_count"]
-                    total_quic_bytes = total_quic_bytes + stat["total_bytes_fetched"]
-                    divisor_quic = divisor_quic + 1
-            for stat in http2_stats_list:
+                    total_proto1_time = total_proto1_time + stat["time"]
+                    total_proto1_resources = total_proto1_resources + stat["resource_count"]
+                    total_proto1_bytes = total_proto1_bytes + stat["total_bytes_fetched"]
+                    divisor_proto1 = divisor_proto1 + 1
+            for stat in proto2_stats_list:
                 if stat["status"] is True:
-                    total_http2_time = total_http2_time + stat["time"]
-                    total_http2_resources = total_http2_resources + stat["resource_count"]
-                    total_http2_bytes = total_http2_bytes + stat["total_bytes_fetched"]
-                    divisor_http2 = divisor_http2 + 1
-            if divisor_quic == 0 or divisor_http2 == 0:
+                    total_proto2_time = total_proto2_time + stat["time"]
+                    total_proto2_resources = total_proto2_resources + stat["resource_count"]
+                    total_proto2_bytes = total_proto2_bytes + stat["total_bytes_fetched"]
+                    divisor_proto2 = divisor_proto2 + 1
+            if divisor_proto1 == 0 or divisor_proto2 == 0:
                 continue
 
             # Mean stats for QUIC
-            quic_mean_time = total_quic_time / divisor_quic
-            quic_mean_resources = total_quic_resources / divisor_quic
-            quic_mean_bytes = total_quic_bytes / divisor_quic
+            proto1_mean_time = total_proto1_time / divisor_proto1
+            proto1_mean_resources = total_proto1_resources / divisor_proto1
+            proto1_mean_bytes = total_proto1_bytes / divisor_proto1
             # Mean stats for HTTP2
-            http2_mean_resources = total_http2_resources / divisor_http2
-            http2_mean_time = total_http2_time / divisor_http2
-            http2_mean_bytes = total_http2_bytes / divisor_http2
+            proto2_mean_resources = total_proto2_resources / divisor_proto2
+            proto2_mean_time = total_proto2_time / divisor_proto2
+            proto2_mean_bytes = total_proto2_bytes / divisor_proto2
 
             fastest = "Tie"
             most_resources = "Tie"
             most_bytes = "Tie"
 
-            if quic_mean_time < http2_mean_time:
-                fastest = "QUIC"
-                quic_time_wins = quic_time_wins + 1
-            elif http2_mean_time < quic_mean_time:
-                fastest = "HTTP2"
-                http2_time_wins = http2_time_wins + 1
+            if proto1_mean_time < proto2_mean_time:
+                fastest = proto1_name
+                proto1_time_wins = proto1_time_wins + 1
+            elif proto2_mean_time < proto1_mean_time:
+                fastest = proto2_name
+                proto2_time_wins = proto2_time_wins + 1
 
-            if quic_mean_resources > http2_mean_resources:
-                most_resources = "QUIC"
-                quic_resources_wins = quic_resources_wins + 1
-            elif http2_mean_resources > quic_mean_resources:
-                most_resources = "HTTP2"
-                http2_resources_wins = http2_resources_wins + 1
+            if proto1_mean_resources > proto2_mean_resources:
+                most_resources = proto1_name
+                proto1_resources_wins = proto1_resources_wins + 1
+            elif proto2_mean_resources > proto1_mean_resources:
+                most_resources = proto2_name
+                proto2_resources_wins = proto2_resources_wins + 1
             else:
-                if fastest == "QUIC":
-                    quic_same_resource_wins = quic_same_resource_wins + 1
-                elif fastest == "HTTP2":
-                    http2_same_resource_wins = http2_same_resource_wins + 1
+                if fastest == proto1_name:
+                    proto1_same_resource_wins = proto1_same_resource_wins + 1
+                elif fastest == proto2_name:
+                    proto2_same_resource_wins = proto2_same_resource_wins + 1
 
-            if quic_mean_bytes > http2_mean_bytes + buffer_bytes:
-                most_bytes = "QUIC"
-                quic_bytes_wins = quic_bytes_wins + 1
-            elif http2_mean_bytes > quic_mean_resources + buffer_bytes:
-                most_bytes = "HTTP2"
-                http2_bytes_wins = http2_bytes_wins + 1
+            if proto1_mean_bytes > proto2_mean_bytes + buffer_bytes:
+                most_bytes = proto1_name
+                proto1_bytes_wins = proto1_bytes_wins + 1
+            elif proto2_mean_bytes > proto1_mean_resources + buffer_bytes:
+                most_bytes = proto2_name
+                proto2_bytes_wins = proto2_bytes_wins + 1
 
             total_pages = total_pages + 1
             print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format(url, fastest, most_resources, most_bytes)
@@ -112,25 +114,25 @@ with open(quic_filename) as quic_file:
         print("")
         print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
         print("----------------------")
-        quic_data["identifiers"].pop("web_protocol", None)
-        print(str(quic_data["identifiers"]))
+        proto1_data["identifiers"].pop("web_protocol", None)
+        print(str(proto1_data["identifiers"]))
         print("----------------------")
         print("In case both fetches same ammount of resources (" +
-              str(total_pages - quic_resources_wins - http2_resources_wins) +
+              str(total_pages - proto1_resources_wins - proto2_resources_wins) +
               " websites), QUIC is faster on " +
-              str(quic_same_resource_wins) +
+              str(proto1_same_resource_wins) +
               " sites and HTTP2 is faster on " +
-              str(http2_same_resource_wins) +
+              str(proto2_same_resource_wins) +
               " sites")
         print("")
-        print("QUIC is faster on " + str(quic_time_wins) + " of the tested web pages.")
-        print("HTTP2 is faster on " + str(http2_time_wins) + " of the tested web pages.")
+        print(proto1_name + " is faster on " + str(proto1_time_wins) + " of the tested web pages.")
+        print(proto2_name + " is faster on " + str(proto2_time_wins) + " of the tested web pages.")
         print("")
-        print("QUIC fetches more resources on " + str(quic_resources_wins) + " of the tested web pages.")
-        print("HTTP2 fetches more resources on " + str(http2_resources_wins) + " of the tested web pages.")
+        print(proto1_name + " fetches more resources on " + str(proto1_resources_wins) + " of the tested web pages.")
+        print(proto2_name + " fetches more resources on " + str(proto2_resources_wins) + " of the tested web pages.")
         print("")
-        print("QUIC fetches more bytes on " + str(quic_bytes_wins) + " of the tested web pages.")
-        print("HTTP2 fetches more bytes on " + str(http2_bytes_wins) + " of the tested web pages.")
+        print(proto1_name + " fetches more bytes on " + str(proto1_bytes_wins) + " of the tested web pages.")
+        print(proto2_name + " fetches more bytes on " + str(proto2_bytes_wins) + " of the tested web pages.")
 
         print("")
         print("Total nr of tested web-pages: " + str(total_pages))

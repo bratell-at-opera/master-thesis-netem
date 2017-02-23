@@ -51,6 +51,8 @@ identifiers = {
 for argument in sys.argv[1:]:
     if argument == "-q" or argument == "--quic":
         identifiers["web_protocol"] = "QUIC"
+    if argument == "-pq" or argument == "--proto-quic":
+        identifiers["web_protocol"] = "PROTO-QUIC"
     elif argument == "-h2" or argument == "--http2":
         identifiers["web_protocol"] = "HTTP2"
     elif argument == "-h1" or argument == "--http1":

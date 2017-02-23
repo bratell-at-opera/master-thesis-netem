@@ -16,6 +16,10 @@ do
             web_protocol="--quic"
             shift
             ;;
+        -pq|--proto-quic)
+            proto_quic=true
+            shift
+            ;;
         -h2|--http2)
             web_protocol="--http2"
             shift
@@ -64,7 +68,11 @@ do
     failed=0
     while true
     do
-        $opera_controller --go-to "https://web.hfelo.se/$url"
+        if [ "$proto_quic" = true ]; then
+            $opera_controller --go-to "https://web.hfelo.se/files/$url"
+        else
+            $opera_controller --go-to "https://web.hfelo.se/$url"
+        fi
         sleep $timeout
         $opera_controller --save-stats $netem_folder/logs/hars/$identifier $url
 
