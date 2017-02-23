@@ -183,7 +183,7 @@ if [ "$web_protocol" = "--quic" ] && [ "$proto_quic" = true ]; then
 fi
 
 # Create an unique identifier for this r-un
-identifier="$proto_identifier"-bw-"$bandwidth_dl"-"$bandwidth_ul"-loss-"$loss_rate_dl"-"$loss_rate_ul"-dev-"$deviation_dl"-"$deviation_ul"-delay-"$delay_dl"-"$delay_ul"-
+identifier="$proto_identifier"-bw-"$bandwidth_dl"-"$bandwidth_ul"-loss-"$loss_move_to_gap_dl"-"$loss_move_to_burst_dl"-"$loss_rate_burst_dl"-"$loss_move_to_gap_ul"-"$loss_move_to_burst_ul"-"$loss_rate_burst_ul"-dev-"$deviation_dl"-"$deviation_ul"-delay-"$delay_dl"-"$delay_ul"-
 identifier="$identifier""$(date '+%Y-%m-%d-%H-%M')"
 
 urlloader_args="$urlloader_args --identifier=$identifier"
