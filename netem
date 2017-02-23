@@ -76,12 +76,12 @@ do
             loss_rate_burst_dl=${argument#*=}
             shift
             ;;
-         "---loss-pos-move-to-gap-ul="*)
+         "--pos-move-to-gap-ul="*)
             limit_args="$limit_args $argument"
             loss_move_to_gap_ul=${argument#*=}
             shift
             ;;
-        "--loss-pos-move-to-burst-ul="*)
+        "--pos-move-to-burst-ul="*)
             limit_args="$limit_args $argument"
             loss_move_to_burst_ul=${argument#*=}
             shift

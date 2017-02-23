@@ -17,11 +17,11 @@ do
             loss_rate_dl="${inArg#*=}"
             shift
             ;;
-         "---loss-pos-move-to-gap-ul="*)
+         "--pos-move-to-gap-ul="*)
             loss_move_to_gap_ul="${inArg#*=}"
             shift
             ;;
-        "--loss-pos-move-to-burst-ul="*)
+        "--pos-move-to-burst-ul="*)
             loss_move_to_burst_ul="${inArg#*=}"
             shift
             ;;
