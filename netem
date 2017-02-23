@@ -61,6 +61,36 @@ shopt -s extglob
 for argument in "$@"
 do
     case $argument in
+        "--pos-move-to-gap-dl="*)
+            limit_args="$limit_args $argument"
+            loss_move_to_gap_dl=${argument#*=}
+            shift
+            ;;
+        "--pos-move-to-burst-dl="*)
+            limit_args="$limit_args $argument"
+            loss_move_to_burst_dl=${argument#*=}
+            shift
+            ;;
+        "--loss-rate-burst-dl="*)
+            limit_args="$limit_args $argument"
+            loss_rate_burst_dl=${argument#*=}
+            shift
+            ;;
+         "---loss-pos-move-to-gap-ul="*)
+            limit_args="$limit_args $argument"
+            loss_move_to_gap_ul=${argument#*=}
+            shift
+            ;;
+        "--loss-pos-move-to-burst-ul="*)
+            limit_args="$limit_args $argument"
+            loss_move_to_burst_ul=${argument#*=}
+            shift
+            ;;
+        "--loss-rate-burst-ul="*)
+            limit_args="$limit_args $argument"
+            loss_rate_burst_ul=${argument#*=}
+            shift
+            ;;
         -q|--quic)
             web_protocol="--quic"
             urlloader_args="$urlloader_args $argument"
@@ -142,6 +172,7 @@ do
     esac
 done
 
+# ---------------------------
 
 if [ -z "$web_protocol" ]; then
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP."
