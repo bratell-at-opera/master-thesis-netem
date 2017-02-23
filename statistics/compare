@@ -4,6 +4,11 @@ import sys
 import json
 
 
+if len(sys.argv) != 3:
+    sys.stderr.write("Usage: \n")
+    sys.stderr.write("      " + sys.argv[0] + " path/to/statistics/file1 path/to/file2\n")
+    sys.exit(1)
+
 proto1_filename = sys.argv[1]
 proto2_filename = sys.argv[2]
 
