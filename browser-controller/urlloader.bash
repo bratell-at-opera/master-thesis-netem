@@ -78,6 +78,9 @@ function start-browser {
     with_gui=$4
     protocol=$5
 
+    # Clear profile
+    rm -rf $profile_dir
+
     if [ "$with_gui" = false ]; then
         browser="xvfb-run --auto-servernum $browser"
     fi
@@ -87,7 +90,7 @@ function start-browser {
     else
         $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 about:blank &> /dev/null &
     fi
-    sleep 2
+    sleep 4
 }
 
 
@@ -114,6 +117,11 @@ do
         chrome-har-capturer -o $har_filename "https://$hostname/files/$url"
     else
         chrome-har-capturer -o $har_filename "https://$hostname/$url"
+    fi
+    # If chrome-har-capturer fails we can't connect to browser
+    if [ $? -ne 0 ]; then
+        killall $browser
+        start-browser $browser $profile_dir $hostname $with_gui $protocol
     fi
 
 done 9< $this_folder/../config/urls.txt
