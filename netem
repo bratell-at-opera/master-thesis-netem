@@ -158,6 +158,14 @@ do
             urlloader_args="$urlloader_args $argument"
             shift
             ;;
+        -g|--with-gui)
+            urlloader_args="$urlloader_args $argument"
+            shift
+            ;;
+        -d|--debug)
+            urlloader_args="$urlloader_args $argument"
+            shift
+            ;;
         *)
             printHelp $0 "Invalid argument: $argument"
             ;;

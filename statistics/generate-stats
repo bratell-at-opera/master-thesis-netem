@@ -144,7 +144,15 @@ for folder in matching_folders:
                 output_log["webpages"][url].append(current_stats)
                 continue
 
-            time = max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+            time = None
+            try:
+                max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+            except KeyError as e:
+                message = url + " did not seem to load correctly."
+                sys.stderr.write(message)
+                current_stats["status"] = False
+                current_stats["error"] = message
+                output_log["webpages"][url].append(current_stats)
             if not time:
                 current_stats["status"] = False
                 current_stats["error"] = "No page load time found!"
