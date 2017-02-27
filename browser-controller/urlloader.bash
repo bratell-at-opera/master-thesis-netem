@@ -108,16 +108,12 @@ do
         echo "Press enter to continue..."
         read
     fi
+
+    echo "Fetching $url..."
     if [ "$proto_quic" = true ]; then
-        chrome-har-capturer -o $har_filename "https://$hostname/files/$url" | grep "DONE"
+        chrome-har-capturer -o $har_filename "https://$hostname/files/$url"
     else
-        chrome-har-capturer -o $har_filename "https://$hostname/$url" | grep "DONE"
-    fi
-    # Check if we succeeded in saving this site - otherwise retry
-    my_status=$?
-    if [ $my_status -ne 0 ]
-    then
-        echo "Failed fetching $url"
+        chrome-har-capturer -o $har_filename "https://$hostname/$url"
     fi
 
 done 9< $this_folder/../config/urls.txt

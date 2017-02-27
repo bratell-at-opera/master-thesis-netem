@@ -122,7 +122,12 @@ do
             ;;
         --delay-dl=*)
             limit_args="$limit_args $argument"
-            delay_dl=$(( $delay + ${argument#*=} ))
+            delay_dl=${argument#*=}
+            shift
+            ;;
+        --delay-ul=*)
+            limit_args="$limit_args $argument"
+            delay_ul=${argument#*=}
             shift
             ;;
         --delay-deviation-ul=*)
@@ -143,18 +148,6 @@ do
         --bandwidth-dl=*)
             limit_args="$limit_args $argument"
             bandwidth_dl=${argument#*=}
-            shift
-            ;;
-        --timeout=*)
-            urlloader_args="$urlloader_args $argument"
-            shift
-            ;;
-        --max-retries=*)
-            urlloader_args="$urlloader_args $argument"
-            shift
-            ;;
-        --max-retries=*)
-            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         --browser=*)
