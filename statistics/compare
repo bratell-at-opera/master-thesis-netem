@@ -75,13 +75,21 @@ with open(proto1_filename) as proto1_file:
                 continue
 
             # Mean stats for QUIC
-            proto1_mean_time = total_proto1_time / divisor_proto1
-            proto1_mean_resources = total_proto1_resources / divisor_proto1
-            proto1_mean_bytes = total_proto1_bytes / divisor_proto1
+            proto1_mean_time = sys.maxsize
+            proto1_mean_resources = 0
+            proto1_mean_bytes = 0
+            if divisor_proto1 != 0:
+                proto1_mean_time = total_proto1_time / divisor_proto1
+                proto1_mean_resources = total_proto1_resources / divisor_proto1
+                proto1_mean_bytes = total_proto1_bytes / divisor_proto1
             # Mean stats for HTTP2
-            proto2_mean_resources = total_proto2_resources / divisor_proto2
-            proto2_mean_time = total_proto2_time / divisor_proto2
-            proto2_mean_bytes = total_proto2_bytes / divisor_proto2
+            proto1_mean_time = sys.maxsize
+            proto1_mean_resources = 0
+            proto1_mean_bytes = 0
+            if divisor_proto2 != 0:
+                proto2_mean_resources = total_proto2_resources / divisor_proto2
+                proto2_mean_time = total_proto2_time / divisor_proto2
+                proto2_mean_bytes = total_proto2_bytes / divisor_proto2
 
             fastest = "Tie"
             most_resources = "Tie"

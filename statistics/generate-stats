@@ -3,6 +3,7 @@
 import sys
 import os
 import json
+import errors
 
 
 def print_help(callable_name, error_info=None):
@@ -20,8 +21,14 @@ def print_help(callable_name, error_info=None):
     sys.stderr.write("-q|--quic\n")
     sys.stderr.write("      The tests ran with QUIC.\n")
     sys.stderr.write("\n")
-    sys.stderr.write("--loss-dl= / --loss-ul=\n")
-    sys.stderr.write("      Specify the loss rate on the down-link/up-link given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("--loss-prob-move-to-gap-dl= / --loss-prob-move-to-gap-dl=\n")
+    sys.stderr.write("      Given in percent. Specify the probability of switching state in the Gilbert-Elliot model of loss rate, for the down-link/up-link  respectively. Note: Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("\n")
+    sys.stderr.write("--loss-rate-burst-dl= / --loss-rate-burst-ul=\n")
+    sys.stderr.write("      Given in percent. Specify the loss rate on the down-link/up-link in the burst state (Gilbert-Elliot model see https://en.wikipedia.org/wiki/Burst_error) given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("\n")
+    sys.stderr.write("--loss-prob-move-burst-dl= / --loss-prob-move-burst-ul=\n")
+    sys.stderr.write("      Given in percent. Specify the loss rate on the down-link/up-link in the burst state (Gilbert-Elliot model see https://en.wikipedia.org/wiki/Burst_error) given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. \n")
     sys.stderr.write("\n")
     sys.stderr.write("--delay-dl= / --delay-ul\n")
     sys.stderr.write("      Specify the delay in ms on the down-link/up-link. \n")
@@ -37,11 +44,15 @@ def print_help(callable_name, error_info=None):
 # Create statistics for a certain type of network-protocol combination
 identifiers = {
     "web_protocol": "",
-    "loss_ul": "",
+    "loss_rate_burst_ul": "",
+    "loss_prob_to_burst_ul": "",
+    "loss_prob_to_gap_ul": "",
     "delay_ul": "",
     "deviation_ul": "",
     "bandwidth_ul": "",
-    "loss_dl": "",
+    "loss_rate_burst_dl": "",
+    "loss_prob_to_burst_dl": "",
+    "loss_prob_to_gap_dl": "",
     "delay_dl": "",
     "deviation_dl": "",
     "bandwidth_dl": ""
@@ -57,10 +68,18 @@ for argument in sys.argv[1:]:
         identifiers["web_protocol"] = "HTTP2"
     elif argument == "-h1" or argument == "--http1":
         identifiers["web_protocol"] = "HTTP"
-    elif "--loss-ul=" in argument:
-        identifiers["loss_ul"] = argument.replace("--loss-ul=", "")
-    elif "--loss-dl=" in argument:
-        identifiers["loss_dl"] = argument.replace("--loss-dl=", "")
+    elif "--loss-prob-move-to-gap-dl=" in argument:
+        identifiers["loss_prob_to_burst_dl"] = argument.replace("--loss-prob-move-to-gap-dl=", "")
+    elif "--loss-prob-move-to-burst-dl=" in argument:
+        identifiers["loss_prob_to_burst_dl"] = argument.replace("--loss-prob-move-to-burst-dl=", "")
+    elif "--loss-rate-burst-dl=" in argument:
+        identifiers["loss_rate_burst_dl"] = argument.replace("--loss-rate-burst-dl=", "")
+    elif "--loss-prob-move-to-burst-ul=" in argument:
+        identifiers["loss_prob_to_burst_ul"] = argument.replace("--loss-prob-move-to-burst-ul=", "")
+    elif "--loss-prob-move-to-gap-ul=" in argument:
+        identifiers["loss_prob_to_gap_ul"] = argument.replace("--loss-prob-move-to-gap-ul=", "")
+    elif "--loss-rate-burst-ul=" in argument:
+        identifiers["loss_rate_burst_ul"] = argument.replace("--loss-rate-burst-ul=", "")
     elif "--delay-ul=" in argument:
         identifiers["delay_ul"] = argument.replace("--delay-ul=", "")
     elif "--delay-dl=" in argument:
@@ -94,19 +113,27 @@ path_to_statistics = \
     "hars"
 match_string = \
     identifiers["web_protocol"] + \
-    "-bw-" + \
+    "_bw-" + \
     identifiers["bandwidth_dl"] + \
     "-" + \
     identifiers["bandwidth_ul"] + \
-    "-loss-" + \
-    identifiers["loss_dl"] + \
+    "_loss-" + \
+    identifiers["loss_prob_to_gap_dl"] + \
     "-" + \
-    identifiers["loss_ul"] + \
-    "-dev-" + \
+    identifiers["loss_prob_to_burst_dl"] + \
+    "-" + \
+    identifiers["loss_rate_burst_dl"] + \
+    "-" + \
+    identifiers["loss_prob_to_gap_dl"] + \
+    "-" + \
+    identifiers["loss_prob_to_burst_dl"] + \
+    "-" + \
+    identifiers["loss_rate_burst_dl"] + \
+    "_dev-" + \
     identifiers["deviation_dl"] + \
     "-" + \
     identifiers["deviation_ul"] + \
-    "-"
+    "_"
 
 matching_folders = []
 for folder in os.listdir(path_to_statistics):
@@ -140,7 +167,7 @@ for folder in matching_folders:
                 sys.stderr.write("Incorrect json file for url: " + url + "\n")
                 sys.stderr.write(str(e) + ": " + e.msg + "\n\n")
                 current_stats["status"] = False
-                current_stats["error"] = "Incorrect json file"
+                current_stats["error"] = errors.json
                 output_log["webpages"][url].append(current_stats)
                 continue
 
@@ -148,15 +175,13 @@ for folder in matching_folders:
             try:
                 max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
             except KeyError as e:
-                message = url + " did not seem to load correctly."
-                sys.stderr.write(message)
                 current_stats["status"] = False
-                current_stats["error"] = message
+                current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
                 continue
             if not time:
                 current_stats["status"] = False
-                current_stats["error"] = "No page load time found!"
+                current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
                 continue
             current_stats["time"] = time
