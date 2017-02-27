@@ -45,6 +45,10 @@ do
             identifier=${argument#*=}
             shift
             ;;
+        --browser=*)
+            browser=${argument#*=}
+            shift
+            ;;
         *)
             echo "$0: INVALID ARG: $argument"
             shift

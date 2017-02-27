@@ -5,11 +5,11 @@ set -e
 for inArg in "$@"
 do
     case $inArg in
-        "--pos-move-to-gap-dl="*)
+        "--loss-prob-move-to-gap-dl="*)
             loss_move_to_gap_dl="${inArg#*=}"
             shift
             ;;
-        "--pos-move-to-burst-dl="*)
+        "--loss-prob-move-to-burst-dl="*)
             loss_move_to_burst_dl="${inArg#*=}"
             shift
             ;;
@@ -17,11 +17,11 @@ do
             loss_rate_dl="${inArg#*=}"
             shift
             ;;
-         "--pos-move-to-gap-ul="*)
+         "--loss-prob-move-to-gap-ul="*)
             loss_move_to_gap_ul="${inArg#*=}"
             shift
             ;;
-        "--pos-move-to-burst-ul="*)
+        "--loss-prob-move-to-burst-ul="*)
             loss_move_to_burst_ul="${inArg#*=}"
             shift
             ;;
