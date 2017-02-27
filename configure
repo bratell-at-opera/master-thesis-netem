@@ -74,9 +74,9 @@ if [ "$genCerts" = true ] && ( [ "$certificateFile" = true ] || [ "$keyFile" = t
 fi
 
 # Set hostname for runner
-hostnameFile=$netemFolder/browser-controller/hostname.py
+hostnameFile=$netemFolder/browser-controller/hostname.conf
 touch $hostnameFile
-echo -n 'hostname = ' > $hostnameFile
+echo -n 'hostname=' > $hostnameFile
 echo -n \' >> $hostnameFile
 echo -n $hostname >> $hostnameFile
 echo \' >> $hostnameFile
