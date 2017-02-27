@@ -153,6 +153,7 @@ for folder in matching_folders:
                 current_stats["status"] = False
                 current_stats["error"] = message
                 output_log["webpages"][url].append(current_stats)
+                continue
             if not time:
                 current_stats["status"] = False
                 current_stats["error"] = "No page load time found!"
