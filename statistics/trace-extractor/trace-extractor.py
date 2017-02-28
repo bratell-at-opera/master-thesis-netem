@@ -3,11 +3,18 @@
 import sys
 import statistics
 import matplotlib.pyplot as plot
+import numpy as np
 
 
 if len(sys.argv) != 2:
     sys.stderr.write("Incorrect no arguments. \n")
     sys.exit(1)
+
+
+def running_mean(x, N):
+    cumsum = np.cumsum(np.insert(x, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / N
+
 
 # bytes
 block_size = 1472
@@ -51,5 +58,17 @@ with open(udp_trace_filename) as udp_trace_file:
 print("Mean bw: " + str(statistics.mean(bandwidth)) + " Mbits / sec")
 print("Deviation in bw: " + str(statistics.stdev(bandwidth)) + " Mbit / sec")
 
+plot.figure(1)
 plot.plot(time_list, bandwidth)
+plot.title("Instantanious bandwidth")
+plot.xlabel("Time (s)")
+plot.ylabel("Bandwidth (Mbit/s)")
+
+runn_mean_n = 100
+runn_mean = running_mean(bandwidth, runn_mean_n)
+plot.figure(2)
+plot.plot(time_list[0:len(runn_mean)], runn_mean)
+plot.title("Running average bandwidth. N = " + str(runn_mean_n))
+plot.xlabel("Time (s)")
+plot.ylabel("Bandwidth (Mbit/s)")
 plot.show()
