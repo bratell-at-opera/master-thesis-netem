@@ -132,9 +132,11 @@ with open(proto1_filename) as proto1_file:
         print("----------------------")
         print("In case both fetches same ammount of resources (" +
               str(total_pages - proto1_resources_wins - proto2_resources_wins) +
-              " websites), QUIC is faster on " +
+              " websites), " +
+              proto1_name + " is faster on " +
               str(proto1_same_resource_wins) +
-              " sites and HTTP2 is faster on " +
+              " sites and " +
+              proto2_name + " is faster on " +
               str(proto2_same_resource_wins) +
               " sites")
         print("")
