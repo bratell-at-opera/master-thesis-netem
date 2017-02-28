@@ -69,7 +69,7 @@ for argument in sys.argv[1:]:
     elif argument == "-h1" or argument == "--http1":
         identifiers["web_protocol"] = "HTTP"
     elif "--loss-prob-move-to-gap-dl=" in argument:
-        identifiers["loss_prob_to_burst_dl"] = argument.replace("--loss-prob-move-to-gap-dl=", "")
+        identifiers["loss_prob_to_gap_dl"] = argument.replace("--loss-prob-move-to-gap-dl=", "")
     elif "--loss-prob-move-to-burst-dl=" in argument:
         identifiers["loss_prob_to_burst_dl"] = argument.replace("--loss-prob-move-to-burst-dl=", "")
     elif "--loss-rate-burst-dl=" in argument:
@@ -95,13 +95,6 @@ for argument in sys.argv[1:]:
     else:
         print_help(sys.argv[0], "Invalid argument: " + argument)
 
-missing_args = ""
-for key, value in identifiers.items():
-    if value == "":
-        missing_args = missing_args + key + "\n"
-if missing_args != "":
-    print_help(sys.argv[0], "Forgot to set\n" + missing_args)
-
 # Find the files to read stats from
 path_to_statistics = \
     os.path.dirname(os.path.realpath(__file__)) + \
@@ -124,16 +117,18 @@ match_string = \
     "-" + \
     identifiers["loss_rate_burst_dl"] + \
     "-" + \
-    identifiers["loss_prob_to_gap_dl"] + \
+    identifiers["loss_prob_to_gap_ul"] + \
     "-" + \
-    identifiers["loss_prob_to_burst_dl"] + \
+    identifiers["loss_prob_to_burst_ul"] + \
     "-" + \
-    identifiers["loss_rate_burst_dl"] + \
+    identifiers["loss_rate_burst_ul"] + \
     "_dev-" + \
     identifiers["deviation_dl"] + \
     "-" + \
     identifiers["deviation_ul"] + \
     "_"
+
+print(match_string)
 
 matching_folders = []
 for folder in os.listdir(path_to_statistics):
@@ -141,9 +136,12 @@ for folder in os.listdir(path_to_statistics):
         matching_folders.append(folder)
 
 # Generate some statistics (finally!)
-output_log = {}
+output_log = dict()
 output_log["identifiers"] = identifiers
-output_log["webpages"] = {}
+output_log["stats"] = dict()
+output_log["stats"]["failed_urls"] = 0
+output_log["stats"]["succeeded_urls"] = 0
+output_log["webpages"] = dict()
 
 for folder in matching_folders:
     for har_file in os.listdir(
@@ -169,20 +167,23 @@ for folder in matching_folders:
                 current_stats["status"] = False
                 current_stats["error"] = errors.json
                 output_log["webpages"][url].append(current_stats)
+                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
                 continue
 
             time = None
             try:
-                max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
-            except KeyError as e:
+                time = max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+            except (KeyError, ValueError) as e:
                 current_stats["status"] = False
                 current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
+                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
                 continue
             if not time:
                 current_stats["status"] = False
                 current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
+                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
                 continue
             current_stats["time"] = time
             current_stats["resource_count"] = 0
@@ -214,5 +215,6 @@ for folder in matching_folders:
                             response["content"]["size"]
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
+            output_log["stats"]["succeeded_urls"] = output_log["stats"]["succeeded_urls"] + 1
 
 sys.stdout.write(json.dumps(output_log))
