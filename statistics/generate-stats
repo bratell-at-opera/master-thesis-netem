@@ -128,8 +128,6 @@ match_string = \
     identifiers["deviation_ul"] + \
     "_"
 
-print(match_string)
-
 matching_folders = []
 for folder in os.listdir(path_to_statistics):
     if match_string in folder:
