@@ -3,6 +3,7 @@
 import sys
 import statistics
 import matplotlib.pyplot as plot
+import math
 import numpy as np
 
 
@@ -26,34 +27,40 @@ udp_trace_filename = sys.argv[1]
 packet_burst_sizes = []
 bandwidth = []
 time_list = []
+packet_received = []
 
 with open(udp_trace_filename) as udp_trace_file:
     line = udp_trace_file.readline()
     columns = line.split()
     start_time = int(columns[1])
     last_packet_time = start_time
-    last_packet_send_time = int(columns[2])
     multiplyer = 1
-    send_burst_size = 1
+    receive_burst_size = 1
+    last_packet_index = int(columns[0])
+    packet_received.append(1)
 
     for line in udp_trace_file:
         columns = line.split()
         if len(columns) == 3:
             packet_time = int(columns[1])
             packet_send_time = int(columns[2])
+            packet_index = int(columns[0])
 
-            if last_packet_send_time == packet_send_time:
-                send_burst_size = send_burst_size + 1
-            else:
-                packet_burst_sizes.append(send_burst_size)
-                send_burst_size = 1
-                last_packet_send_time = packet_send_time
+            # Keep track of losses
+            for packet in range(last_packet_index, packet_index):
+                packet_received.append(0)
+            packet_received.append(1)
 
             time_delta = packet_time - last_packet_time
 
             if time_delta == 0:
                 multiplyer = multiplyer + 1
+                receive_burst_size = receive_burst_size + 1
+                packet_burst_sizes.append(0)
             else:
+                packet_burst_sizes.append(receive_burst_size)
+                receive_burst_size = 1
+
                 current_bandwidth = multiplyer * \
                     (block_size / time_delta) * \
                     usec_sec / bytes_to_MB * \
@@ -81,18 +88,30 @@ plot.ylabel("Bandwidth (Mbit/s)")
 
 runn_mean_n = 100
 runn_mean = running_mean(bandwidth, runn_mean_n)
+edges = (len(time_list) - len(runn_mean)) / 2
+adder = 0
+if not (edges).is_integer():
+    edges = math.floor(edges)
+    adder = -1
+
 plot.figure(2)
-plot.plot(time_list[0:len(runn_mean)], runn_mean)
+plot.plot(time_list[edges:len(time_list) - edges + adder], runn_mean)
 plot.title("Running average bandwidth. N = " + str(runn_mean_n))
 plot.xlabel("Time (s)")
 plot.ylabel("Bandwidth (Mbit/s)")
 
 
 plot.figure(3)
-plot.plot(range(0, len(packet_burst_sizes)), packet_burst_sizes)
+plot.plot(time_list, packet_burst_sizes, "ko", markersize=2)
 plot.title("Packet burst sizes")
-plot.xlabel("Sequence")
+plot.xlabel("Time (s)")
 plot.ylabel("Packets (nr)")
 
+
+plot.figure(4)
+plot.plot(range(0, len(packet_received)), packet_received, "ko", markersize=2)
+plot.title("Packet arrived")
+plot.xlabel("Arrived packets")
+plot.ylabel("Sequence nr")
 
 plot.show()
