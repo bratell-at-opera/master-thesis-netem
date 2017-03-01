@@ -18,60 +18,76 @@ def running_mean(x, N):
 
 # bytes
 block_size = 1472
-usec_sec = 1000000
+usec_sec = 1000000.0
+usec_ms = 1000.0
 bytes_to_MB = 1000000
 bytes_to_bits = 8
 udp_trace_filename = sys.argv[1]
 
-packet_burst_sizes = []
-bandwidth = []
-time_list = []
+trace = dict()
+trace["burst_sizes"] = []
+trace["bandwidths"] = []
+trace["recv_timestamps"] = []
+trace["packet_size"] = 1472
 
 with open(udp_trace_filename) as udp_trace_file:
     line = udp_trace_file.readline()
     columns = line.split()
-    start_time = int(columns[1])
-    last_packet_time = start_time
-    last_packet_send_time = int(columns[2])
-    multiplyer = 1
-    send_burst_size = 1
+
+    last_index = int(columns[0])
+    last_recv = int(columns[2])
+    trace["start_index"] = last_index
+
+    trace[str(index)]["recv_time"] = int(columns[2])
+    trace[str(index)]["send_time"] = int(columns[1])
+    trace[str(index)]["travel_time"] = \
+    trace[str(index)]["recv_time"] - \
+    trace[str(index)]["send_time"]
+    trace[str(index)]["bandwidth"] = 0
 
     for line in udp_trace_file:
         columns = line.split()
         if len(columns) == 3:
-            packet_time = int(columns[1])
-            packet_send_time = int(columns[2])
+            index = int(columns[0])
+            trace[str(index)] = dict()
+            diff = 0
+            if index != last_index + 1:
+                for i in range(last_index + 1, index):
+                    trace[str(i)] = None
 
-            if last_packet_send_time == packet_send_time:
-                send_burst_size = send_burst_size + 1
+            trace[str(index)]["recv_time"] = int(columns[2])
+            trace[str(index)]["send_time"] = int(columns[1])
+            trace[str(index)]["travel_time"] = \
+                trace[str(index)]["recv_time"] - \
+                trace[str(index)]["send_time"]
+
+            # Calculate burst sizes
+            burst_size = 1
+            for i in range(index, last_index):
+                if trace[str(i)]["recv_time"] == \
+                    trace[str(i - 1)]["recv_time"]:
+                        burst_size = burst_size + 1
+            if burst_size == 1:
+                trace["burst_sizes"].append(burst_size)
+                trace["bandwidths"].append(burst_size*trace["packet_size"])
+                trace["recv_timestamps"].append(trace[str(index)]["recv_time"])
             else:
-                packet_burst_sizes.append(send_burst_size)
-                send_burst_size = 1
-                last_packet_send_time = packet_send_time
+                trace["burst_sizes"][-1] = burst_size
+                trace["bandwidths"][-1] = burst_size * trace["packet_size"]
 
-            time_delta = packet_time - last_packet_time
-
-            if time_delta == 0:
-                multiplyer = multiplyer + 1
-            else:
-                current_bandwidth = multiplyer * \
-                    (block_size / time_delta) * \
-                    usec_sec / bytes_to_MB * \
-                    bytes_to_bits
-                for i in range(0, multiplyer):
-                    bandwidth.append(current_bandwidth)
-
-                time_list.append((packet_time - start_time) / usec_sec)
-
-                multiplyer = 1
-                last_packet_time = packet_time
+            last_index = index
         else:
+            trace["stop_index"] = last_index
             break
 
-print("Mean bw: " + str(statistics.mean(bandwidth)) + " Mbits / sec")
-print("Deviation in bw: " + str(statistics.stdev(bandwidth)) + " Mbit / sec")
-print("Mean packet burst size: " + str(statistics.mean(packet_burst_sizes)))
-print("Deviation in burst sizes: " + str(statistics.stdev(packet_burst_sizes)))
+
+print("Mean bw: " + str(statistics.mean(trace["bandwidth"])) + " Mbits / sec")
+print("Deviation in bw: " + str(statistics.stdev(trace["bandwidth"])) + " Mbit / sec")
+print("Mean packet burst size: " + str(statistics.mean(trace["burst_sizes"])))
+print("Deviation in burst sizes: " + str(statistics.stdev(trace["burst_sizes"])))
+packet_travel_times = packet["travel_time"] if packet for packet in trace
+print("Mean packet travel time: " + str(statistics.mean()) + " ms")
+print("Deviation in travel time: " + str(statistics.stdev()) + " ms")
 
 plot.figure(1)
 plot.plot(time_list, bandwidth)
@@ -79,9 +95,10 @@ plot.title("Instantanious bandwidth")
 plot.xlabel("Time (s)")
 plot.ylabel("Bandwidth (Mbit/s)")
 
-runn_mean_n = 100
+runn_mean_n = 250
 runn_mean = running_mean(bandwidth, runn_mean_n)
 plot.figure(2)
+
 plot.plot(time_list[0:len(runn_mean)], runn_mean)
 plot.title("Running average bandwidth. N = " + str(runn_mean_n))
 plot.xlabel("Time (s)")
@@ -93,6 +110,13 @@ plot.plot(range(0, len(packet_burst_sizes)), packet_burst_sizes)
 plot.title("Packet burst sizes")
 plot.xlabel("Sequence")
 plot.ylabel("Packets (nr)")
+
+# plot.hold(True)
+plot.figure(4)
+plot.plot(range(0, len(packet_travel_times) - 1), packet_travel_times[1:])
+plot.title("Packet travel times")
+plot.xlabel("Sequence")
+plot.ylabel("Time (ms)")
 
 
 plot.show()
