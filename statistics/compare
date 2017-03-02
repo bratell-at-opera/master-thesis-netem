@@ -6,7 +6,8 @@ import json
 
 if len(sys.argv) != 3:
     sys.stderr.write("Usage: \n")
-    sys.stderr.write("      " + sys.argv[0] + " path/to/statistics/file1 path/to/file2\n")
+    sys.stderr.write("      " + sys.argv[0] + \
+                     " path/to/statistics/file1 path/to/file2\n")
     sys.exit(1)
 
 proto1_filename = sys.argv[1]
@@ -21,7 +22,8 @@ with open(proto1_filename) as proto1_file:
 
         for key in proto1_data["identifiers"].keys():
             if key != "web_protocol":
-                if proto1_data["identifiers"][key] != proto2_data["identifiers"][key]:
+                if proto1_data["identifiers"][key] != \
+                  proto2_data["identifiers"][key]:
                     sys.stderr.write("You are comparing apples and pears!\n")
                     sys.stderr.write(str(proto1_data["identifiers"]) + "\n")
                     sys.stderr.write(str(proto2_data["identifiers"]) + "\n")
@@ -61,20 +63,25 @@ with open(proto1_filename) as proto1_file:
 
             for stat in proto1_stats_list:
                 if stat["status"] is True:
-                    total_proto1_time = total_proto1_time + stat["time"]
-                    total_proto1_resources = total_proto1_resources + stat["resource_count"]
-                    total_proto1_bytes = total_proto1_bytes + stat["total_bytes_fetched"]
+                    total_proto1_time = \
+                        total_proto1_time + stat["time"]
+                    total_proto1_resources = \
+                        total_proto1_resources + stat["resource_count"]
+                    total_proto1_bytes = \
+                        total_proto1_bytes + stat["total_bytes_fetched"]
                     divisor_proto1 = divisor_proto1 + 1
             for stat in proto2_stats_list:
                 if stat["status"] is True:
                     total_proto2_time = total_proto2_time + stat["time"]
-                    total_proto2_resources = total_proto2_resources + stat["resource_count"]
-                    total_proto2_bytes = total_proto2_bytes + stat["total_bytes_fetched"]
+                    total_proto2_resources = \
+                        total_proto2_resources + stat["resource_count"]
+                    total_proto2_bytes = \
+                        total_proto2_bytes + stat["total_bytes_fetched"]
                     divisor_proto2 = divisor_proto2 + 1
             if divisor_proto1 == 0 or divisor_proto2 == 0:
                 continue
 
-            # Mean stats for QUIC
+            # Mean stats for proto1
             proto1_mean_time = sys.maxsize
             proto1_mean_resources = 0
             proto1_mean_bytes = 0
@@ -82,10 +89,10 @@ with open(proto1_filename) as proto1_file:
                 proto1_mean_time = total_proto1_time / divisor_proto1
                 proto1_mean_resources = total_proto1_resources / divisor_proto1
                 proto1_mean_bytes = total_proto1_bytes / divisor_proto1
-            # Mean stats for HTTP2
-            proto1_mean_time = sys.maxsize
-            proto1_mean_resources = 0
-            proto1_mean_bytes = 0
+            # Mean stats for proto2
+            proto2_mean_time = sys.maxsize
+            proto2_mean_resources = 0
+            proto2_mean_bytes = 0
             if divisor_proto2 != 0:
                 proto2_mean_resources = total_proto2_resources / divisor_proto2
                 proto2_mean_time = total_proto2_time / divisor_proto2
@@ -122,7 +129,13 @@ with open(proto1_filename) as proto1_file:
                 proto2_bytes_wins = proto2_bytes_wins + 1
 
             total_pages = total_pages + 1
-            print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format(url, fastest, most_resources, most_bytes)
+            print_line = \
+                '{:>25}  {:>25}  {:>25}  {:>25}'.format(
+                    url,
+                    fastest,
+                    most_resources,
+                    most_bytes)
+
             print(print_line)
         print("")
         print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
@@ -140,14 +153,32 @@ with open(proto1_filename) as proto1_file:
               str(proto2_same_resource_wins) +
               " sites")
         print("")
-        print(proto1_name + " is faster on " + str(proto1_time_wins) + " of the tested web pages.")
-        print(proto2_name + " is faster on " + str(proto2_time_wins) + " of the tested web pages.")
+        print(proto1_name + \
+            " is faster on " + \
+            str(proto1_time_wins) + \
+            " of the tested web pages.")
+        print(proto2_name + \
+            " is faster on " + \
+            str(proto2_time_wins) + \
+            " of the tested web pages.")
         print("")
-        print(proto1_name + " fetches more resources on " + str(proto1_resources_wins) + " of the tested web pages.")
-        print(proto2_name + " fetches more resources on " + str(proto2_resources_wins) + " of the tested web pages.")
+        print(proto1_name + \
+            " fetches more resources on " + \
+            str(proto1_resources_wins) + \
+            " of the tested web pages.")
+        print(proto2_name + \
+            " fetches more resources on " + \
+            str(proto2_resources_wins) + \
+            " of the tested web pages.")
         print("")
-        print(proto1_name + " fetches more bytes on " + str(proto1_bytes_wins) + " of the tested web pages.")
-        print(proto2_name + " fetches more bytes on " + str(proto2_bytes_wins) + " of the tested web pages.")
+        print(proto1_name + \
+            " fetches more bytes on " + \
+            str(proto1_bytes_wins) + \
+            " of the tested web pages.")
+        print(proto2_name + \
+            " fetches more bytes on " + \
+            str(proto2_bytes_wins) + \
+            " of the tested web pages.")
 
         print("")
         print("Total nr of tested web-pages: " + str(total_pages))
