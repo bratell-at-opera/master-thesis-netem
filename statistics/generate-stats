@@ -21,23 +21,45 @@ def print_help(callable_name, error_info=None):
     sys.stderr.write("-q|--quic\n")
     sys.stderr.write("      The tests ran with QUIC.\n")
     sys.stderr.write("\n")
-    sys.stderr.write("--loss-prob-move-to-gap-dl= / --loss-prob-move-to-gap-dl=\n")
-    sys.stderr.write("      Given in percent. Specify the probability of switching state in the Gilbert-Elliot model of loss rate, for the down-link/up-link  respectively. Note: Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("--loss-prob-move-to-gap-dl= " +
+                     "/ --loss-prob-move-to-gap-dl=\n")
+    sys.stderr.write("      Given in percent. Specify the probability of " +
+                     "switching state in the Gilbert-Elliot model of loss " +
+                     "rate, for the down-link/up-link  respectively." +
+                     " Note: Up-link rarely sees loss in cellular networks. \n")
     sys.stderr.write("\n")
     sys.stderr.write("--loss-rate-burst-dl= / --loss-rate-burst-ul=\n")
-    sys.stderr.write("      Given in percent. Specify the loss rate on the down-link/up-link in the burst state (Gilbert-Elliot model see https://en.wikipedia.org/wiki/Burst_error) given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("      Given in percent. Specify the loss rate on " +
+                     "the down-link/up-link in the burst state " +
+                     "(Gilbert-Elliot model see " +
+                     "https://en.wikipedia.org/wiki/Burst_error) " +
+                     "given in percent. 1-3% on down-link in rare" +
+                     "cases but mostly below 1% " +
+                     "by an order of magnitude. Up-link rarely " +
+                     "sees loss in cellular networks. \n")
     sys.stderr.write("\n")
-    sys.stderr.write("--loss-prob-move-burst-dl= / --loss-prob-move-burst-ul=\n")
-    sys.stderr.write("      Given in percent. Specify the loss rate on the down-link/up-link in the burst state (Gilbert-Elliot model see https://en.wikipedia.org/wiki/Burst_error) given in percent. 1-3% on down-link in rare cases but mostly below 1% by an order of magnitude. Up-link rarely sees loss in cellular networks. \n")
+    sys.stderr.write("--loss-prob-move-burst-dl= /" +
+                     "--loss-prob-move-burst-ul=\n")
+    sys.stderr.write("      Given in percent. " +
+                     "Specify the loss rate on the down-link/up-link " +
+                     "in the burst state (Gilbert-Elliot model see " +
+                     "https://en.wikipedia.org/wiki/Burst_error) given " +
+                     "in percent. 1-3% on down-link in rare cases but " +
+                     "mostly below 1% by an order of magnitude. " +
+                     "Up-link rarely sees loss in cellular networks. \n")
     sys.stderr.write("\n")
     sys.stderr.write("--delay-dl= / --delay-ul\n")
-    sys.stderr.write("      Specify the delay in ms on the down-link/up-link. \n")
+    sys.stderr.write("      Specify the delay in " +
+                     "ms on the down-link/up-link. \n")
     sys.stderr.write("\n")
-    sys.stderr.write("--delay-deviation-dl= / --delay-deviation-ul\n")
-    sys.stderr.write("      Specify the standard deviation of the delay ms on the down-link/up-link. \n")
+    sys.stderr.write("--delay-deviation-dl= / " +
+                     "--delay-deviation-ul\n")
+    sys.stderr.write("      Specify the standard deviation of " +
+                     "the delay ms on the down-link/up-link. \n")
     sys.stderr.write("\n")
     sys.stderr.write("--bandwidth-dl= / --bandwidth-ul\n")
-    sys.stderr.write("      Specify the bandiwdth in Mbit/s on down-link/up-link\n")
+    sys.stderr.write("      Specify the bandiwdth in Mbit/s " +
+                     "on down-link/up-link\n")
     sys.exit(1)
 
 
@@ -62,36 +84,48 @@ identifiers = {
 for argument in sys.argv[1:]:
     if argument == "-q" or argument == "--quic":
         identifiers["web_protocol"] = "QUIC"
-    if argument == "-pq" or argument == "--proto-quic":
+    elif argument == "-pq" or argument == "--proto-quic":
         identifiers["web_protocol"] = "PROTO-QUIC"
     elif argument == "-h2" or argument == "--http2":
         identifiers["web_protocol"] = "HTTP2"
     elif argument == "-h1" or argument == "--http1":
         identifiers["web_protocol"] = "HTTP"
     elif "--loss-prob-move-to-gap-dl=" in argument:
-        identifiers["loss_prob_to_gap_dl"] = argument.replace("--loss-prob-move-to-gap-dl=", "")
+        identifiers["loss_prob_to_gap_dl"] = \
+            argument.replace("--loss-prob-move-to-gap-dl=", "")
     elif "--loss-prob-move-to-burst-dl=" in argument:
-        identifiers["loss_prob_to_burst_dl"] = argument.replace("--loss-prob-move-to-burst-dl=", "")
+        identifiers["loss_prob_to_burst_dl"] = \
+            argument.replace("--loss-prob-move-to-burst-dl=", "")
     elif "--loss-rate-burst-dl=" in argument:
-        identifiers["loss_rate_burst_dl"] = argument.replace("--loss-rate-burst-dl=", "")
+        identifiers["loss_rate_burst_dl"] = \
+            argument.replace("--loss-rate-burst-dl=", "")
     elif "--loss-prob-move-to-burst-ul=" in argument:
-        identifiers["loss_prob_to_burst_ul"] = argument.replace("--loss-prob-move-to-burst-ul=", "")
+        identifiers["loss_prob_to_burst_ul"] = \
+            argument.replace("--loss-prob-move-to-burst-ul=", "")
     elif "--loss-prob-move-to-gap-ul=" in argument:
-        identifiers["loss_prob_to_gap_ul"] = argument.replace("--loss-prob-move-to-gap-ul=", "")
+        identifiers["loss_prob_to_gap_ul"] = \
+            argument.replace("--loss-prob-move-to-gap-ul=", "")
     elif "--loss-rate-burst-ul=" in argument:
-        identifiers["loss_rate_burst_ul"] = argument.replace("--loss-rate-burst-ul=", "")
+        identifiers["loss_rate_burst_ul"] = \
+            argument.replace("--loss-rate-burst-ul=", "")
     elif "--delay-ul=" in argument:
-        identifiers["delay_ul"] = argument.replace("--delay-ul=", "")
+        identifiers["delay_ul"] = \
+            argument.replace("--delay-ul=", "")
     elif "--delay-dl=" in argument:
-        identifiers["delay_dl"] = argument.replace("--delay-dl=", "")
+        identifiers["delay_dl"] = \
+            argument.replace("--delay-dl=", "")
     elif "--delay-deviation-ul=" in argument:
-        identifiers["deviation_ul"] = argument.replace("--delay-deviation-ul=", "")
+        identifiers["deviation_ul"] = \
+            argument.replace("--delay-deviation-ul=", "")
     elif "--delay-deviation-dl=" in argument:
-        identifiers["deviation_dl"] = argument.replace("--delay-deviation-dl=", "")
+        identifiers["deviation_dl"] = \
+            argument.replace("--delay-deviation-dl=", "")
     elif "--bandwidth-ul=" in argument:
-        identifiers["bandwidth_ul"] = argument.replace("--bandwidth-ul=", "")
+        identifiers["bandwidth_ul"] = \
+            argument.replace("--bandwidth-ul=", "")
     elif "--bandwidth-dl=" in argument:
-        identifiers["bandwidth_dl"] = argument.replace("--bandwidth-dl=", "")
+        identifiers["bandwidth_dl"] = \
+            argument.replace("--bandwidth-dl=", "")
     else:
         print_help(sys.argv[0], "Invalid argument: " + argument)
 
@@ -147,7 +181,8 @@ for folder in matching_folders:
             os.path.sep +
             folder):
         if ".har" not in har_file:
-            sys.stderr.write(har_file + "does not contain .har, will skip this file.")
+            sys.stderr.write(har_file +
+                             "does not contain .har, will skip this file.")
             continue
 
         url = har_file.replace(".har", "")
@@ -155,7 +190,11 @@ for folder in matching_folders:
             output_log["webpages"][url] = []
         current_stats = {}
 
-        with open(path_to_statistics + os.path.sep + folder + os.path.sep + har_file) as data_file:
+        with open(path_to_statistics +
+                  os.path.sep +
+                  folder +
+                  os.path.sep +
+                  har_file) as data_file:
             data = None
             try:
                 data = json.load(data_file)["log"]
@@ -165,23 +204,27 @@ for folder in matching_folders:
                 current_stats["status"] = False
                 current_stats["error"] = errors.json
                 output_log["webpages"][url].append(current_stats)
-                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
+                output_log["stats"]["failed_urls"] = \
+                    output_log["stats"]["failed_urls"] + 1
                 continue
 
             time = None
             try:
-                time = max(entry["pageTimings"]["onContentLoad"] for entry in data["pages"])
+                time = max(entry["pageTimings"]["onContentLoad"] \
+                    for entry in data["pages"])
             except (KeyError, ValueError) as e:
                 current_stats["status"] = False
                 current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
-                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
+                output_log["stats"]["failed_urls"] = \
+                    output_log["stats"]["failed_urls"] + 1
                 continue
             if not time:
                 current_stats["status"] = False
                 current_stats["error"] = errors.url_load
                 output_log["webpages"][url].append(current_stats)
-                output_log["stats"]["failed_urls"] = output_log["stats"]["failed_urls"] + 1
+                output_log["stats"]["failed_urls"] = \
+                    output_log["stats"]["failed_urls"] + 1
                 continue
             current_stats["time"] = time
             current_stats["resource_count"] = 0
@@ -196,7 +239,8 @@ for folder in matching_folders:
                         # Count nr resources fetched
                         if response["status"] == 200:
                             error_key_exist = "_error" in response
-                            if error_key_exist is True and response["_error"] != "":
+                            if error_key_exist is True and \
+                                response["_error"] != "":
                                 pass
                             else:
                                 current_stats["resource_count"] = \
@@ -213,6 +257,7 @@ for folder in matching_folders:
                             response["content"]["size"]
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
-            output_log["stats"]["succeeded_urls"] = output_log["stats"]["succeeded_urls"] + 1
+            output_log["stats"]["succeeded_urls"] = \
+                output_log["stats"]["succeeded_urls"] + 1
 
 sys.stdout.write(json.dumps(output_log))
