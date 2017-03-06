@@ -130,7 +130,7 @@ while end_index < len(bandwidth) - step_size:
 
 plot.figure(2)
 plot.plot(bandwidth_means_time, bandwidth_means)
-plot.title("Average bandiwdth every " + str(second_average) + " seconds")
+plot.title("Average bandwidth every " + str(second_average) + " seconds")
 plot.xlabel("Time (s)")
 plot.ylabel("Bandwidth (Mbit/s)")
 

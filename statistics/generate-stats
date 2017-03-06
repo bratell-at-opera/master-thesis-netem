@@ -21,6 +21,10 @@ def print_help(callable_name, error_info=None):
     sys.stderr.write("-q|--quic\n")
     sys.stderr.write("      The tests ran with QUIC.\n")
     sys.stderr.write("\n")
+    sys.stderr.write("-pq|--proto-quic\n")
+    sys.stderr.write("      The tests ran with the QUIC web " +
+                     "server proto-quic/Chromium,.\n")
+    sys.stderr.write("\n")
     sys.stderr.write("--loss-prob-move-to-gap-dl= " +
                      "/ --loss-prob-move-to-gap-dl=\n")
     sys.stderr.write("      Given in percent. Specify the probability of " +
