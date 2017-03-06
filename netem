@@ -43,6 +43,15 @@ function printHelp {
     echo ""
     echo "--bandwidth-dl= / --bandwidth-ul"
     echo "      Specify the bandiwdth in Mbit/s on down-link/up-link"
+    echo ""
+    echo "--bw-trace="
+    echo "      Specify a bandwidth trace for the down-link and up-link"
+    echo ""
+    echo "--trace-multiplyer-ul="
+    echo "      Specify a multiplyer to scale the bandwidth trace for the up-link"
+    echo ""
+    echo "--trace-multiplyer-dl="
+    echo "      Specify a multiplyer to scale the bandwidth trace for the down-link"
     exit 1
 }
 
@@ -60,6 +69,8 @@ quic_server=/home/fille/go/bin/quic-server
 limit_args=""
 urlloader_args=""
 delay=0
+trace_mp_down=1
+trace_mp_up=1
 
 # Set extblog extension in bash in order for case-switch to work (disabled when executing script)
 shopt -s extglob
@@ -162,6 +173,21 @@ do
             urlloader_args="$urlloader_args $argument"
             shift
             ;;
+        --bw-trace=*)
+            limit_args="$limit_args $argument"
+            trace=true
+            shift
+            ;;
+        --trace-multiplyer-dl=*)
+            limit_args="$limit_args $argument"
+            trace_mp_down=${argument#*=}
+            shift
+            ;;
+        --trace-multiplyer-ul=*)
+            limit_args="$limit_args $argument"
+            trace_mp_up=${argument#*=}
+            shift
+            ;;
         *)
             printHelp $0 "Invalid argument: $argument"
             ;;
@@ -179,7 +205,15 @@ if [ "$web_protocol" = "--quic" ] && [ "$proto_quic" = true ]; then
 fi
 
 # Create an unique identifier for this r-un
-identifier="$proto_identifier"_bw-"$bandwidth_dl"-"$bandwidth_ul"_loss-"$loss_move_to_gap_dl"-"$loss_move_to_burst_dl"-"$loss_rate_burst_dl"-"$loss_move_to_gap_ul"-"$loss_move_to_burst_ul"-"$loss_rate_burst_ul"_dev-"$deviation_dl"-"$deviation_ul"_delay-"$delay_dl"-"$delay_ul"_
+identifier="$proto_identifier"_bw
+
+if [ "$trace" = true ]; then
+    identifier="$identifier"-trace-"$trace_mp_down"-"$trace_mp_up"
+else
+    identifier="$identifier"-"$bandwidth_dl"-"$bandwidth_ul"
+fi
+
+identifier="$identifier"_loss-"$loss_move_to_gap_dl"-"$loss_move_to_burst_dl"-"$loss_rate_burst_dl"-"$loss_move_to_gap_ul"-"$loss_move_to_burst_ul"-"$loss_rate_burst_ul"_dev-"$deviation_dl"-"$deviation_ul"_delay-"$delay_dl"-"$delay_ul"_
 identifier="$identifier""$(date '+%Y-%m-%d_%H-%M')"
 
 urlloader_args="$urlloader_args --identifier=$identifier"
@@ -218,5 +252,8 @@ if [ "$proto_quic" = true ]; then
     killall $quic_server
 else
     kill -QUIT $( cat $pid_file )
+fi
+if [ "$trace" = true ]; then
+    kill $(cat /tmp/netem.bw-controller.pid)
 fi
 

@@ -2,26 +2,53 @@
 
 import sys
 import statistics
+import subprocess
+import time
+import itertools
+import re
 
-if len(sys.argv) != 2:
+
+if len(sys.argv) not in [2, 3, 4]:
     sys.stderr.write("Incorrect no arguments. \n")
     sys.exit(1)
 
 # constants
-block_size = 1472
 usec_sec = 1000000
 usec_ms = 1000
 bytes_to_MB = 1000000
 bytes_to_bits = 8
-udp_trace_filename = sys.argv[1]
+second_average = 1
 
-packet_burst_sizes_recv = []
+# In args
+udp_trace_filename = sys.argv[1]
+bw_down_mp = None
+bw_up_mp = None
+
+try:
+    bw_down_mp = float(sys.argv[2])
+    bw_up_mp = float(sys.argv[3])
+except IndexError:
+    pass
+
+if not bw_down_mp:
+    bw_down_mp = 1
+if not bw_up_mp:
+    bw_up_mp = 1
+
+# Get the block size used, ugly hack
+trace_contens = open(udp_trace_filename).read()
+blocksize_regex = re.compile('blocksize \d+')
+blocksize_match = blocksize_regex.findall(trace_contens)[0].split()[1]
+block_size = int(blocksize_match)
+
+
+# Get the running time of this trace
+runn_time_regex = re.compile('\d+[s]')
+time_match = runn_time_regex.findall(udp_trace_filename)
+time_match = time_match[0].replace("s", "")
+running_time = int(time_match)
+
 bandwidth = []
-time_list = []
-full_time_list = []
-packet_received = []
-latency = []
-packet_list = []
 
 with open(udp_trace_filename) as udp_trace_file:
     line = udp_trace_file.readline()
@@ -32,9 +59,6 @@ with open(udp_trace_filename) as udp_trace_file:
     multiplyer = 1
     receive_burst_size = 1
     last_packet_index = int(columns[0])
-    packet_received.append(1)
-    packet_list.append(last_packet_index)
-    latency.append((last_packet_time - last_packet_send_time) / usec_ms)
 
     for line in udp_trace_file:
         columns = line.split()
@@ -42,25 +66,18 @@ with open(udp_trace_filename) as udp_trace_file:
             packet_time = int(columns[2])
             packet_send_time = int(columns[1])
             packet_index = int(columns[0])
-            packet_list.append(packet_index)
             time_delta = packet_time - last_packet_time
 
             # Look at bandwidth
             if time_delta == 0:
                 multiplyer = multiplyer + 1
-                receive_burst_size = receive_burst_size + 1
-                packet_burst_sizes_recv.append(0)
             else:
-                packet_burst_sizes_recv.append(receive_burst_size)
-                receive_burst_size = 1
-
                 current_bandwidth = multiplyer * \
                     (block_size / time_delta) * \
                     usec_sec / bytes_to_MB * \
                     bytes_to_bits
-                for i in range(0, multiplyer):
-                    bandwidth.append(current_bandwidth)
-                    time_list.append((packet_time - start_time) / usec_sec)
+
+                bandwidth.append(current_bandwidth)
 
                 multiplyer = 1
             last_packet_time = packet_time
@@ -69,23 +86,71 @@ with open(udp_trace_filename) as udp_trace_file:
         else:
             break
 
+sys.stdout.write(udp_trace_filename +
+                 " is a trace of length " +
+                 time_match +
+                 "s with a blocksize of " +
+                 blocksize_match +
+                 " bytes \n" +
+                 "The average bandwidth of this trace is " +
+                 str(statistics.mean(bandwidth)) +
+                 "Mbit/s.\n\n")
+
 # Get average bandwidth every n:th second
-start_index = 0
-running_time = 120
-second_average = 1
 step_size = second_average / (running_time / len(bandwidth))
+start_index = 0
 end_index = round(step_size)
 mplyer = 1
 bandwidth_means = []
-bandwidth_means_time = []
 
 while end_index < len(bandwidth) - step_size:
     # Get data-points for mean
     points = bandwidth[start_index:end_index]
     bandwidth_means.append(statistics.mean(points))
-    # Get the time of middle sample
-    half_diff = (end_index - start_index) / 2
-    bandwidth_means_time.append(time_list[round(start_index + half_diff)])
+
     start_index = end_index
     mplyer = mplyer + 1
     end_index = round(mplyer * step_size)
+
+cycled_list = itertools.cycle(bandwidth_means)
+
+# Sleep so that the links have time to configure themselves first
+time.sleep(3)
+
+for momental_bandwidth in cycled_list:
+    bw_down = momental_bandwidth * bw_down_mp
+    bw_up = momental_bandwidth * bw_up_mp
+    sys.stdout.write("Setting down bandwidth to " +
+                     str(bw_down) +
+                     " Mbit/s and up bandwidth to " +
+                     str(bw_up) +
+                     "Mbit/s \n")
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "replace",
+                           "dev",
+                           "veth2",
+                           "root",
+                           "handle",
+                           "1:0",
+                           "netem",
+                           "rate",
+                           str(bw_down) + "Mbit",
+                           "limit",
+                           str(250000)])
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "replace",
+                           "dev",
+                           "veth3",
+                           "root",
+                           "handle",
+                           "1:0",
+                           "netem",
+                           "rate",
+                           str(bw_up) + "Mbit",
+                           "limit",
+                           str(250000)])
+    time.sleep(second_average)

@@ -1,60 +1,74 @@
 #!/bin/bash
 set -e
 
+netem_folder=$(realpath $(dirname $0)/..)
+
 # Handle in-arguments -------------
-for inArg in "$@"
+for argument in "$@"
 do
-    case $inArg in
+    case $argument in
         "--loss-prob-move-to-gap-dl="*)
-            loss_move_to_gap_dl="${inArg#*=}"
+            loss_move_to_gap_dl="${argument#*=}"
             shift
             ;;
         "--loss-prob-move-to-burst-dl="*)
-            loss_move_to_burst_dl="${inArg#*=}"
+            loss_move_to_burst_dl="${argument#*=}"
             shift
             ;;
         "--loss-rate-burst-dl="*)
-            loss_rate_dl="${inArg#*=}"
+            loss_rate_dl="${argument#*=}"
             shift
             ;;
          "--loss-prob-move-to-gap-ul="*)
-            loss_move_to_gap_ul="${inArg#*=}"
+            loss_move_to_gap_ul="${argument#*=}"
             shift
             ;;
         "--loss-prob-move-to-burst-ul="*)
-            loss_move_to_burst_ul="${inArg#*=}"
+            loss_move_to_burst_ul="${argument#*=}"
             shift
             ;;
         "--loss-rate-burst-ul="*)
-            loss_rate_ul="${inArg#*=}"
+            loss_rate_ul="${argument#*=}"
             shift
             ;;
         "--delay-dl="*)
-            mean_delay_down="${inArg#*=}"
+            mean_delay_down="${argument#*=}"
             shift
             ;;
         "--delay-deviation-dl="*)
-            delay_deviation_down="${inArg#*=}"
+            delay_deviation_down="${argument#*=}"
             shift
             ;;
         "--bandwidth-dl="*)
-            bandwidth_down="${inArg#*=}"
+            bandwidth_down="${argument#*=}"
             shift
             ;;
         "--delay-ul="*)
-            mean_delay_up="${inArg#*=}"
+            mean_delay_up="${argument#*=}"
             shift
             ;;
         "--delay-deviation-ul="*)
-            delay_deviation_up="${inArg#*=}"
+            delay_deviation_up="${argument#*=}"
             shift
             ;;
         "--bandwidth-ul="*)
-            bandwidth_up="${inArg#*=}"
+            bandwidth_up="${argument#*=}"
+            shift
+            ;;
+        "--bw-trace="*)
+            trace=${argument#*=}
+            shift
+            ;;
+        "--trace-multiplyer-ul="*)
+            trace_mp_up=${argument#*=}
+            shift
+            ;;
+        "--trace-multiplyer-dl="*)
+            trace_mp_down=${argument#*=}
             shift
             ;;
         *)
-            echo "$0 : Invalid argument $inArg."
+            echo "$0 : Invalid argument $argument."
             exit 1
             shift
             ;;
@@ -63,7 +77,6 @@ done
 
 
 # Check that arguments make sense
-
 if [ -z "$loss_rate_dl" ] || [ -z "$loss_move_to_gap_dl" ] || [ -z "$loss_move_to_burst_dl" ]; then
     if [ -n "$loss_rate_dl" ] || [ -n "$loss_move_to_gap_dl" ] || [ -n "$loss_move_to_burst_dl" ]; then
         echo "You need to set all params regarding down-link loss in order to use down-link loss."
@@ -78,6 +91,11 @@ if [ -z "$loss_rate_up" ] || [ -z "$loss_move_to_gap_up" ] || [ -z "$loss_move_t
     fi
 fi
 
+if [ -n "$trace" ] && ( [ -n "$bandwidth_down" ] || [ -n "$bandwidth_up" ] ); then
+    echo "You can't both use a trace and specify a bandwidth limit!"
+    exit 3
+fi
+
 # Used for restoring qdiscs
 function restoreQdiscs () {
     for interface in $@; do
@@ -90,10 +108,6 @@ function restoreQdiscs () {
 restoreQdiscs "veth2" "veth3"
 
 # Buffer size -------------------
-buffer_multiplyer=15000
-# Calc buffer size as an integer
-# The division by 1 is to convert float -> integer
-#buffer_size=$(echo "($buffer_multiplyer * $mean_delay_down * 2 * 0.001 * $bandwidth_down * 1000)/1" | bc)
 buffer_size="250000"
 
 # Setup the qdiscs -----------------------------------------------------
@@ -103,7 +117,18 @@ nrQdiscs=0
 
 # Down-link -----------------------------
 # Bandwidth
-if [ -n "$bandwidth_down" ]; then
+
+if [ -n "$trace" ]; then
+    tc -s qdisc replace dev veth2 root handle 1:0 netem rate 0.5Mbit limit $buffer_size limit $buffer_size
+    tc -s qdisc replace dev veth3 root handle 1:0 netem rate 0.5Mbit limit $buffer_size limit $buffer_size
+    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_up &> $netem_folder/logs/bw-controller.log &
+    bw_pid=$!
+    bw_pid_file=/tmp/netem.bw-controller.pid
+    touch $bw_pid_file
+    echo $bw_pid > $bw_pid_file
+    nrQdiscs=$(($nrQdiscs + 1))
+
+elif [ -n "$bandwidth_down" ]; then
     if [ $nrQdiscs -gt 0 ]; then
         tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)): netem rate "$bandwidth_down"Mbit limit $buffer_size
     else
@@ -151,7 +176,9 @@ eval "$tcCommandDelay"
 # Now do uplink! ---------------------------------------------------------------------
 nrQdiscs=0
 # Bandwidth
-if [ -n "$bandwidth_up" ]; then
+if [ -n "$trace" ]; then
+    nrQdiscs=$(($nrQdiscs + 1))
+elif [ -n "$bandwidth_up" ]; then
     if [ $nrQdiscs -gt 0 ]; then
         tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)): netem rate "$bandwidth_up"Mbit limit $buffer_size
     else
