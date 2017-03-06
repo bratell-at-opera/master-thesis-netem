@@ -30,7 +30,7 @@ bandwidth = []
 time_list = []
 full_time_list = []
 packet_received = []
-latency_variations = []
+latency = []
 packet_list = []
 
 with open(udp_trace_filename) as udp_trace_file:
@@ -44,6 +44,7 @@ with open(udp_trace_filename) as udp_trace_file:
     last_packet_index = int(columns[0])
     packet_received.append(1)
     packet_list.append(last_packet_index)
+    latency.append((last_packet_time - last_packet_send_time) / usec_ms)
 
     for line in udp_trace_file:
         columns = line.split()
@@ -55,10 +56,7 @@ with open(udp_trace_filename) as udp_trace_file:
 
             # Keep track of latency variations
             time_delta = packet_time - last_packet_time
-            latency_variations.append(((packet_time - packet_send_time) -
-                                       (last_packet_time -
-                                        last_packet_send_time)) /
-                                      usec_ms)
+            latency.append((packet_time - packet_send_time) - usec_ms)
 
             # Keep track of losses
             for packet in range(last_packet_index + 1, packet_index):
@@ -102,23 +100,37 @@ print("Mean packet loss:" +
 print("Deviation in packet_loss:" +
       str(statistics.stdev(packet_received)))
 
+# Bandwidth
 plot.figure(1)
 plot.plot(time_list, bandwidth)
 plot.title("Instantanious bandwidth")
 plot.xlabel("Time (s)")
 plot.ylabel("Bandwidth (Mbit/s)")
 
-runn_mean_n = 100
-runn_mean = running_mean(bandwidth, runn_mean_n)
-edges = (len(time_list) - len(runn_mean)) / 2
-adder = 0
-if not (edges).is_integer():
-    edges = math.floor(edges)
-    adder = -1
+# Get average bandwidth every second
+start_index = 0
+running_time = 120
+second_average = 1
+step_size = second_average / (running_time / len(bandwidth))
+end_index = round(step_size)
+mplyer = 1
+bandwidth_means = []
+bandwidth_means_time = []
+
+while end_index < len(bandwidth) - step_size:
+    # Get data-points for mean
+    points = bandwidth[start_index:end_index]
+    bandwidth_means.append(statistics.mean(points))
+    # Get the time of middle sample
+    half_diff = (end_index - start_index) / 2
+    bandwidth_means_time.append(time_list[round(start_index + half_diff)])
+    start_index = end_index
+    mplyer = mplyer + 1
+    end_index = round(mplyer * step_size)
 
 plot.figure(2)
-plot.plot(time_list[edges:len(time_list) - edges + adder], runn_mean)
-plot.title("Running average bandwidth. N = " + str(runn_mean_n))
+plot.plot(bandwidth_means_time, bandwidth_means)
+plot.title("Average bandiwdth every " + str(second_average) + " seconds")
 plot.xlabel("Time (s)")
 plot.ylabel("Bandwidth (Mbit/s)")
 
@@ -130,12 +142,17 @@ plot.xlabel("Time (s)")
 plot.ylabel("Packets (nr)")
 
 # Latency variations
+latency_mean = statistics.mean(latency)
+latency_compared_to_mean = []
+for value in latency:
+    latency_compared_to_mean.append(value - latency_mean)
+
 plot.figure(5)
-plot.plot(packet_list[1:], latency_variations)
+plot.plot(packet_list, latency_compared_to_mean)
 plot.title("Variance in link latency")
 plot.xlabel("Packet nr")
 plot.ylabel(
-    "Travel time difference between \ncurrent packet and the former one (ms)"
+    "Travel time difference between \nmean and current packet (ms)"
 )
 
 # Packet loss running mean
