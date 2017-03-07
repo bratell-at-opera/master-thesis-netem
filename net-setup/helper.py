@@ -37,42 +37,37 @@ def read_arguments(argv):
     argv = argv[1:]
     config = dict()
 
-    config["move_to_gap_dl"] = 1.0
+    config["move_to_gap_dl"] = 100
     config["move_to_burst_dl"] = 0.0
     config["loss_rate_dl"] = 0.0
-    config["move_to_gap_ul"] = 1.0
+    config["move_to_gap_ul"] = 100
     config["move_to_burst_ul"] = 0.0
     config["loss_rate_ul"] = 0.0
     config["seed"] = 0
-    config["qdisc_nr_dl"] = 1
-    config["qdisc_nr_ul"] = 1
+    # Default qdisc for loss is 2 in netem
+    config["qdisc_nr_dl"] = 2
+    config["qdisc_nr_ul"] = 2
 
     for argument in argv:
         if "--loss-prob-move-to-gap-dl=" in argument:
             config["move_to_gap_dl"] = \
-                float(argument.replace("--loss-prob-move-to-gap-dl=", "")) /\
-                100.0
+                float(argument.replace("--loss-prob-move-to-gap-dl=", ""))
         elif "--loss-prob-move-to-burst-dl=" in argument:
             config["move_to_burst_dl"] = \
-                float(argument.replace("--loss-prob-move-to-burst-dl=", "")) /\
-                100.0
+                float(argument.replace("--loss-prob-move-to-burst-dl=", ""))
         elif "--loss-rate-burst-dl=" in argument:
             config["loss_rate_dl"] = \
-                float(argument.replace("--loss-rate-burst-dl=", "")) /\
-                100.0
+                float(argument.replace("--loss-rate-burst-dl=", ""))
         elif "--loss-prob-move-to-gap-ul=" in argument:
             config["move_to_gap_ul"] = \
                     float(argument.replace(
-                            "--loss-prob-move-to-gap-ul=", "")) /\
-                    100.0
+                            "--loss-prob-move-to-gap-ul=", ""))
         elif "--loss-prob-move-to-burst-ul=" in argument:
             config["move_to_burst_ul"] = \
-                float(argument.replace("--loss-prob-move-to-burst-ul=", "")) /\
-                100.0
+                float(argument.replace("--loss-prob-move-to-burst-ul=", ""))
         elif "--loss-rate-burst-ul=" in argument:
             config["loss_rate_ul"] = \
-                float(argument.replace("--loss-rate-burst-ul=", "")) /\
-                100.0
+                float(argument.replace("--loss-rate-burst-ul=", ""))
         elif "--random-seed=" in argument:
             config["seed"] = int(argument.replace("--random-seed=", ""))
         elif "--qdisc-nr-dl=" in argument:
