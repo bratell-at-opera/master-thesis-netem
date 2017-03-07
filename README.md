@@ -13,12 +13,12 @@ To install some requirements on a Debian based system (Debian 8 "Jessie" / Ubunt
 
 ```
 sudo apt-get install openvswitch-switch ethtool xdotool xvfb python3-dev python3-virtualenv python3-pip virtualenv
-pip3 install pipenv
 ```
 
-**Chromedriver and Caddy is requirements that must be installed separately**
+**Caddy and node+chrome-har-capturer is requirements that must be installed separately**
 
-You can get Caddy by running `go get github.com/mholt/caddy/caddy` using Go >=1.7. You can get Chromedriver from https://sites.google.com/a/chromium.org/chromedriver/downloads. Put Chromedriver in path (recommended location is /usr/local/bin).
+- You can get Caddy by running `go get github.com/mholt/caddy/caddy` using Go >=1.7 (https://golang.org/).
+- Download node 6 or 7 from https://nodejs.org/en/ and place it in PATH
 
 ## Clone
 
