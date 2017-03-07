@@ -32,27 +32,27 @@ do
             shift
             ;;
         "--delay-dl="*)
-            mean_delay_down="${argument#*=}"
+            mean_delay_dl="${argument#*=}"
             shift
             ;;
         "--delay-deviation-dl="*)
-            delay_deviation_down="${argument#*=}"
+            delay_deviation_dl="${argument#*=}"
             shift
             ;;
         "--bandwidth-dl="*)
-            bandwidth_down="${argument#*=}"
+            bandwidth_dl="${argument#*=}"
             shift
             ;;
         "--delay-ul="*)
-            mean_delay_up="${argument#*=}"
+            mean_delay_ul="${argument#*=}"
             shift
             ;;
         "--delay-deviation-ul="*)
-            delay_deviation_up="${argument#*=}"
+            delay_deviation_ul="${argument#*=}"
             shift
             ;;
         "--bandwidth-ul="*)
-            bandwidth_up="${argument#*=}"
+            bandwidth_ul="${argument#*=}"
             shift
             ;;
         "--bw-trace="*)
@@ -60,7 +60,7 @@ do
             shift
             ;;
         "--trace-multiplyer-ul="*)
-            trace_mp_up=${argument#*=}
+            trace_mp_ul=${argument#*=}
             shift
             ;;
         "--trace-multiplyer-dl="*)
@@ -84,14 +84,14 @@ if [ -z "$loss_rate_dl" ] || [ -z "$loss_move_to_gap_dl" ] || [ -z "$loss_move_t
     fi
 fi
 
-if [ -z "$loss_rate_up" ] || [ -z "$loss_move_to_gap_up" ] || [ -z "$loss_move_to_burst_up" ]; then
-    if [ -n "$loss_rate_up" ] || [ -n "$loss_move_to_gap_up" ] || [ -n "$loss_move_to_burst_up" ]; then
+if [ -z "$loss_rate_ul" ] || [ -z "$loss_move_to_gap_ul" ] || [ -z "$loss_move_to_burst_ul" ]; then
+    if [ -n "$loss_rate_ul" ] || [ -n "$loss_move_to_gap_ul" ] || [ -n "$loss_move_to_burst_ul" ]; then
         echo "You need to set all params regarding up-link loss in order to use up-link loss."
         exit 2
     fi
 fi
 
-if [ -n "$trace" ] && ( [ -n "$bandwidth_down" ] || [ -n "$bandwidth_up" ] ); then
+if [ -n "$trace" ] && ( [ -n "$bandwidth_dl" ] || [ -n "$bandwidth_ul" ] ); then
     echo "You can't both use a trace and specify a bandwidth limit!"
     exit 3
 fi
@@ -111,117 +111,79 @@ restoreQdiscs "veth2" "veth3"
 buffer_size="250000"
 
 # Setup the qdiscs -----------------------------------------------------
-# Some nesting here but nessecary in order to set ordering correctly.
-# Authors note: This looks like shit.
-nrQdiscs=0
 
 # Down-link -----------------------------
 # Bandwidth
 
 if [ -n "$trace" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 netem rate 0.5Mbit limit $buffer_size limit $buffer_size
-    tc -s qdisc replace dev veth3 root handle 1:0 netem rate 0.5Mbit limit $buffer_size limit $buffer_size
-    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_up &> $netem_folder/logs/bw-controller.log &
+    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
+    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
+    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
     touch $bw_pid_file
     echo $bw_pid > $bw_pid_file
-    nrQdiscs=$(($nrQdiscs + 1))
 
-elif [ -n "$bandwidth_down" ]; then
-    if [ $nrQdiscs -gt 0 ]; then
-        tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)): netem rate "$bandwidth_down"Mbit limit $buffer_size
-    else
-        tc -s qdisc replace dev veth2 root handle 1:0 netem rate "$bandwidth_down"Mbit limit $buffer_size limit $buffer_size
-    fi
-    nrQdiscs=$(($nrQdiscs + 1))
+elif [ -n "$bandwidth_dl" ]; then
+    tc -s qdisc replace dev veth2 root handle 1:0 netem rate "$bandwidth_dl"Mbit limit $buffer_size limit $buffer_size
+else
+    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
 fi
+
 
 # Loss
 if [ "$loss_move_to_burst_dl" ] && [ "$loss_move_to_gap_dl" ] && [ "$loss_rate_dl" ]; then
-    if [ $nrQdiscs -gt 0 ]; then
-        tcCommandLoss="tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $buffer_size"
-    else
-        tcCommandLoss="tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size"
-    fi
-    tcCommandLoss="$tcCommandLoss loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0%"
-    nrQdiscs=$(($nrQdiscs + 1))
+    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem limit $buffer_size loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0%
+else
+    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
-tcCommandDelay=""
-if [ $nrQdiscs -gt 0 ]; then
-    tcCommandDelay="tc -s qdisc add dev veth2 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $buffer_size"
-else
-    tcCommandDelay="tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size"
-fi
+tcCommandDelay="tc -s qdisc add dev veth2 parent 2:0 handle 3:0 netem limit $buffer_size"
 
+if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ]; then
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms distribution normal"
 
-if [ -n "$mean_delay_down" ] && [ -n "$delay_deviation_down" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_down"ms "$delay_deviation_down"ms distribution normal"
-    nrQdiscs=$(($nrQdiscs + 1))
-
-elif [ -n "$mean_delay_down" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_down"ms"
-    nrQdiscs=$(($nrQdiscs + 1))
-elif [ -n "$delay_deviation_down" ] && [ -z "$mean_delay_down"]; then
+elif [ -n "$mean_delay_dl" ]; then
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms"
+elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
     echo "ERROR: You can't set a delay deviation without setting a delay!!"
     restoreQdiscs veth2
     exit 11
 fi
-
-eval "$tcCommandLoss"
 eval "$tcCommandDelay"
 
 # Now do uplink! ---------------------------------------------------------------------
-nrQdiscs=0
 # Bandwidth
 if [ -n "$trace" ]; then
-    nrQdiscs=$(($nrQdiscs + 1))
-elif [ -n "$bandwidth_up" ]; then
-    if [ $nrQdiscs -gt 0 ]; then
-        tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)): netem rate "$bandwidth_up"Mbit limit $buffer_size
-    else
-        tc -s qdisc replace dev veth3 root handle 1:0 netem rate "$bandwidth_up"Mbit limit $buffer_size limit $buffer_size
-    fi
-    nrQdiscs=$(($nrQdiscs + 1))
+    :
+elif [ -n "$bandwidth_ul" ]; then
+    tc -s qdisc replace dev veth3 root handle 1:0 netem rate "$bandwidth_ul"Mbit limit $buffer_size limit $buffer_size
+else
+    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
 fi
 
+
 # Loss
-tcCommandLoss=""
 if [ "$loss_move_to_burst_ul" ] && [ "$loss_move_to_gap_ul" ] && [ "$loss_rate_ul" ]; then
-    if [ $nrQdiscs -gt 0 ]; then
-        tcCommandLoss="tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $buffer_size"
-    else
-        tcCommandLoss="tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size"
-    fi
-    tcCommandLoss="$tcCommandLoss loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0%"
-    nrQdiscs=$(($nrQdiscs + 1))
+    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem limit $buffer_size loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0%
+else
+    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
-tcCommandDelay=""
-if [ $nrQdiscs -gt 0 ]; then
-    tcCommandDelay="tc -s qdisc add dev veth3 parent $nrQdiscs:0 handle $(($nrQdiscs + 1)):0 netem limit $buffer_size"
-else
-    tcCommandDelay="tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size"
-fi
+tcCommandDelay="tc -s qdisc add dev veth3 parent 2:0 handle 3:0 netem limit $buffer_size"
 
+if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ]; then
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal"
 
-if [ -n "$mean_delay_up" ] && [ -n "$delay_deviation_up" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_up"ms "$delay_deviation_up"ms distribution normal"
-    nrQdiscs=$(($nrQdiscs + 1))
-
-elif [ -n "$mean_delay_up" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_up"ms"
-    nrQdiscs=$(($nrQdiscs + 1))
-elif [ -n "$delay_deviation_up" ] && [ -z "$mean_delay_up"]; then
+elif [ -n "$mean_delay_ul" ]; then
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms"
+elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
     echo "ERROR: You can't set a delay deviation without setting a delay!!"
     restoreQdiscs veth3
     exit 11
 fi
-
-eval "$tcCommandLoss"
 eval "$tcCommandDelay"
 
 
