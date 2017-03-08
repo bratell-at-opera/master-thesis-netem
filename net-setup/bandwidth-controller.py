@@ -115,7 +115,7 @@ while end_index < len(bandwidth) - step_size:
 cycled_list = itertools.cycle(bandwidth_means)
 
 # Sleep so that the links have time to configure themselves first
-time.sleep(3)
+time.sleep(2)
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
@@ -125,6 +125,7 @@ for momental_bandwidth in cycled_list:
                      " Mbit/s and up bandwidth to " +
                      str(bw_up) +
                      "Mbit/s \n")
+    sys.stdout.flush()
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -136,9 +137,7 @@ for momental_bandwidth in cycled_list:
                            "1:0",
                            "netem",
                            "rate",
-                           str(bw_down) + "Mbit",
-                           "limit",
-                           str(250000)])
+                           str(bw_down) + "Mbit"])
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -150,7 +149,5 @@ for momental_bandwidth in cycled_list:
                            "1:0",
                            "netem",
                            "rate",
-                           str(bw_up) + "Mbit",
-                           "limit",
-                           str(250000)])
+                           str(bw_up) + "Mbit"])
     time.sleep(second_average)
