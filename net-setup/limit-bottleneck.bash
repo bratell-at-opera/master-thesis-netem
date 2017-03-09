@@ -116,8 +116,8 @@ buffer_size="250000"
 # Bandwidth
 
 if [ -n "$trace" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 netem
-    tc -s qdisc replace dev veth3 root handle 1:0 netem
+    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
+    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
     $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
@@ -125,17 +125,17 @@ if [ -n "$trace" ]; then
     echo $bw_pid > $bw_pid_file
 
 elif [ -n "$bandwidth_dl" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 netem "$bandwidth_dl"Mbit
+    tc -s qdisc replace dev veth2 root handle 1:0 netem "$bandwidth_dl"Mbit limit $buffer_size
 else
-    tc -s qdisc replace dev veth2 root handle 1:0 netem
+    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
 fi
 
 
 # Loss
 if [ "$loss_move_to_burst_dl" ] && [ "$loss_move_to_gap_dl" ] && [ "$loss_rate_dl" ]; then
-    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0%
+    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem
+    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
@@ -169,17 +169,17 @@ if [ -n "$trace" ]; then
     :
 elif [ -n "$bandwidth_ul" ]; then
     # Burst size ~10 packets, min burst size ~1 packet (L2 MTU = L3 MTU + 14 bytes)
-    tc -s qdisc replace dev veth3 root handle 1:0 tbf rate "$bandwidth_ul"Mbit
+    tc -s qdisc replace dev veth3 root handle 1:0 tbf rate "$bandwidth_ul"Mbit limit $buffer_size
 else
-    tc -s qdisc replace dev veth3 root handle 1:0 netem
+    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
 fi
 
 
 # Loss
 if [ "$loss_move_to_burst_ul" ] && [ "$loss_move_to_gap_ul" ] && [ "$loss_rate_ul" ]; then
-    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0%
+    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem
+    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
@@ -200,11 +200,11 @@ eval "$tcCommandDelay"
 # Add a TBF qdisc at the end of chain for burstier network
 if [ -n "$trace" ]; then
     # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 100ms rate 2Mbit
+    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate 2Mbit
 
 elif [ -n "$bandwidth_ul" ]; then
     # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 100ms rate "$bandwidth_ul"Mbit
+    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate "$bandwidth_ul"Mbit
 fi
 
 

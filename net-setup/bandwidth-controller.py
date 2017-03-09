@@ -116,6 +116,7 @@ cycled_list = itertools.cycle(bandwidth_means)
 
 # Sleep so that the links have time to configure themselves first
 time.sleep(2)
+buffer_size = 250000
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
@@ -148,7 +149,9 @@ for momental_bandwidth in cycled_list:
                            "1:0",
                            "netem",
                            "rate",
-                           str(bw_down) + "Mbit"])
+                           str(bw_down) + "Mbit",
+                           "limit",
+                           str(buffer_size)])
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -195,6 +198,8 @@ for momental_bandwidth in cycled_list:
                            "latency",
                            "200ms",
                            "rate",
-                           str(bw_up) + "Mbit"])
+                           str(bw_up) + "Mbit",
+                           "limit",
+                           str(buffer_size)])
 
     time.sleep(second_average)
