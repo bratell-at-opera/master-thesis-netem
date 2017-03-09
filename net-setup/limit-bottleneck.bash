@@ -125,7 +125,6 @@ if [ -n "$trace" ]; then
     echo $bw_pid > $bw_pid_file
 
 elif [ -n "$bandwidth_dl" ]; then
-    # Burst size ~10 packets, min burst size ~1 packet (L2 MTU = L3 MTU + 14 bytes)
     tc -s qdisc replace dev veth2 root handle 1:0 netem "$bandwidth_dl"Mbit
 else
     tc -s qdisc replace dev veth2 root handle 1:0 netem
@@ -153,6 +152,16 @@ elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
     exit 11
 fi
 eval "$tcCommandDelay"
+
+# Add a TBF qdisc at the end of chain for burstier network
+if [ -n "$trace" ]; then
+    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate 2Mbit
+
+elif [ -n "$bandwidth_dl" ]; then
+    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate "$bandwidth_ul"Mbit
+fi
 
 # Now do uplink! ---------------------------------------------------------------------
 # Bandwidth
@@ -187,6 +196,17 @@ elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
     exit 11
 fi
 eval "$tcCommandDelay"
+
+# Add a TBF qdisc at the end of chain for burstier network
+if [ -n "$trace" ]; then
+    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 100ms rate 2Mbit
+
+elif [ -n "$bandwidth_ul" ]; then
+    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 100ms rate "$bandwidth_ul"Mbit
+fi
+
 
 
 # Enforce MTU sized packets only ---------------------------

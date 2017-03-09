@@ -66,10 +66,9 @@ with open(udp_trace_filename) as udp_trace_file:
             full_time_list.append(packet_time - start_time)
 
             # Look at bandwidth
-            if time_delta == 0:
+            if time_delta <= 10000:
                 multiplyer = multiplyer + 1
                 receive_burst_size = receive_burst_size + 1
-                packet_burst_sizes_recv.append(0)
             else:
                 packet_burst_sizes_recv.append(receive_burst_size)
                 receive_burst_size = 1
@@ -136,7 +135,10 @@ plot.ylabel("Bandwidth (Mbit/s)")
 
 
 plot.figure(3)
-plot.plot(time_list, packet_burst_sizes_recv, "ko", markersize=2)
+plot.plot(range(0, len(packet_burst_sizes_recv)),
+          packet_burst_sizes_recv,
+          "ko",
+          markersize=2)
 plot.title("Packet burst sizes")
 plot.xlabel("Time (s)")
 plot.ylabel("Packets (nr)")

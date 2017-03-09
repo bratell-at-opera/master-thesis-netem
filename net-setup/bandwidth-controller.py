@@ -119,13 +119,24 @@ time.sleep(2)
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
+    # Max of 10 packets and bw_down / kernel tick rate
+    tbf_burst_size_down = 10 * 1520
+    if bw_down / 250 > tbf_burst_size_down:
+        tbf_burst_size_down = bw_down / 250,
+
     bw_up = momental_bandwidth * bw_up_mp
+    tbf_burst_size_up = 10 * 1520
+    if bw_up / 250 > tbf_burst_size_down:
+        tbf_burst_size_up = bw_up / 250,
+
     sys.stdout.write("Setting down bandwidth to " +
                      str(bw_down) +
                      " Mbit/s and up bandwidth to " +
                      str(bw_up) +
                      "Mbit/s \n")
     sys.stdout.flush()
+    # Bandwidth both up/down as well as for
+    # TBF at the end of chain
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -143,6 +154,24 @@ for momental_bandwidth in cycled_list:
                            "qdisc",
                            "change",
                            "dev",
+                           "veth2",
+                           "parent",
+                           "3:0",
+                           "handle",
+                           "4:0",
+                           "tbf",
+                           "burst",
+                           str(tbf_burst_size_down),
+                           "latency",
+                           "200ms",
+                           "rate",
+                           str(bw_down) + "Mbit"])
+
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "change",
+                           "dev",
                            "veth3",
                            "root",
                            "handle",
@@ -150,4 +179,22 @@ for momental_bandwidth in cycled_list:
                            "netem",
                            "rate",
                            str(bw_up) + "Mbit"])
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "change",
+                           "dev",
+                           "veth3",
+                           "parent",
+                           "3:0",
+                           "handle",
+                           "4:0",
+                           "tbf",
+                           "burst",
+                           str(tbf_burst_size_up),
+                           "latency",
+                           "200ms",
+                           "rate",
+                           str(bw_up) + "Mbit"])
+
     time.sleep(second_average)
