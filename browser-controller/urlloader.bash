@@ -114,9 +114,9 @@ do
 
     echo "Fetching $url..."
     if [ "$proto_quic" = true ]; then
-        chrome-har-capturer --give-up 180s -o $har_filename "https://$hostname/files/$url"
+        chrome-har-capturer -o $har_filename "https://$hostname/files/$url"
     else
-        chrome-har-capturer --give-up 180s -o $har_filename "https://$hostname/$url"
+        chrome-har-capturer -o $har_filename "https://$hostname/$url"
     fi
     # If chrome-har-capturer fails we can't connect to browser
     if [ $? -ne 0 ]; then
