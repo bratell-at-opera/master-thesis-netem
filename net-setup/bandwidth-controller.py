@@ -198,8 +198,6 @@ for momental_bandwidth in cycled_list:
                            "latency",
                            "200ms",
                            "rate",
-                           str(bw_up) + "Mbit",
-                           "limit",
-                           str(buffer_size)])
+                           str(bw_up) + "Mbit"])
 
     time.sleep(second_average)
