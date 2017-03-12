@@ -27,7 +27,7 @@ git clone --recursive git@github.com:hansfilipelo/netem
 cd netem
 ```
 
-## Websites to load
+## Download websites to load from web servers
 
 There's an included script (`fetch-sites/fetch-sites.bash`) that populates the folder "webroot" with pages from Alexa top 500 that loads somewhat okay as static sites. Either run this or put your own site in:
 
@@ -35,14 +35,26 @@ There's an included script (`fetch-sites/fetch-sites.bash`) that populates the f
 "this-folder"/webroot/url
 ```
 
-Then replace the contents of the file `config/urls.txt` with your own url. For each entry in `urls.txt` netem will load `https://MY_HOSTNAME/url` from the web server.
-
-## Setup
+It is recommended to use this as ~/.wgetrc:
 
 ```
-pipenv install
+header = Accept-Language: en-us,en;q=0.5
+header = Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+header = Connection: keep-alive
+user_agent = Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0
+referer = /
+robots = off
+```
+
+For each entry in `config/urls.txt` netem will load `https://MY_HOSTNAME/url` from the web server.
+
+## Get started!
+
+```
 # Remember that you need a VALID certificate for the domain
-./configure --key-file=path/to/my/key --cert-file=path/to/my/cert --hostname=MY_HOSTNAME
+sudo ./configure --key-file=path/to/my/key --cert-file=path/to/my/cert --hostname=MY_HOSTNAME
+./netem --help
+sudo ./netem OPTIONS
 ```
 
 
