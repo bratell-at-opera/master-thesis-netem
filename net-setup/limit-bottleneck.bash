@@ -142,7 +142,7 @@ fi
 tcCommandDelay="tc -s qdisc add dev veth2 parent 2:0 handle 3:0 netem"
 
 if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms 50% distribution normal"
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms 50% distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_dl" ]; then
     tcCommandDelay="$tcCommandDelay" delay "$mean_delay_dl"ms
@@ -186,7 +186,7 @@ fi
 tcCommandDelay="tc -s qdisc add dev veth3 parent 2:0 handle 3:0 netem"
 
 if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal"
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_ul" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms"
