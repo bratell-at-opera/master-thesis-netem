@@ -116,7 +116,7 @@ cycled_list = itertools.cycle(bandwidth_means)
 
 # Sleep so that the links have time to configure themselves first
 time.sleep(2)
-buffer_size = 250000
+buffer_size = 10000
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
@@ -152,23 +152,23 @@ for momental_bandwidth in cycled_list:
                            str(bw_down) + "Mbit",
                            "limit",
                            str(buffer_size)])
-    subprocess.check_call(["tc",
-                           "-s",
-                           "qdisc",
-                           "change",
-                           "dev",
-                           "veth2",
-                           "parent",
-                           "3:0",
-                           "handle",
-                           "4:0",
-                           "tbf",
-                           "burst",
-                           str(tbf_burst_size_down),
-                           "latency",
-                           "200ms",
-                           "rate",
-                           str(bw_down) + "Mbit"])
+#    subprocess.check_call(["tc",
+#                           "-s",
+#                           "qdisc",
+#                           "change",
+#                           "dev",
+#                           "veth2",
+#                           "parent",
+#                           "3:0",
+#                           "handle",
+#                           "4:0",
+#                           "tbf",
+#                           "burst",
+#                           str(tbf_burst_size_down),
+#                           "latency",
+#                           "200ms",
+#                           "rate",
+#                           str(bw_down) + "Mbit"])
 
     subprocess.check_call(["tc",
                            "-s",
@@ -182,22 +182,22 @@ for momental_bandwidth in cycled_list:
                            "netem",
                            "rate",
                            str(bw_up) + "Mbit"])
-    subprocess.check_call(["tc",
-                           "-s",
-                           "qdisc",
-                           "change",
-                           "dev",
-                           "veth3",
-                           "parent",
-                           "3:0",
-                           "handle",
-                           "4:0",
-                           "tbf",
-                           "burst",
-                           str(tbf_burst_size_up),
-                           "latency",
-                           "200ms",
-                           "rate",
-                           str(bw_up) + "Mbit"])
+#    subprocess.check_call(["tc",
+#                           "-s",
+#                           "qdisc",
+#                           "change",
+#                           "dev",
+#                           "veth3",
+#                           "parent",
+#                           "3:0",
+#                           "handle",
+#                           "4:0",
+#                           "tbf",
+#                           "burst",
+#                           str(tbf_burst_size_up),
+#                           "latency",
+#                           "200ms",
+#                           "rate",
+#                           str(bw_up) + "Mbit"])
 
     time.sleep(second_average)

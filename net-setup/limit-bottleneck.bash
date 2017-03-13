@@ -108,7 +108,7 @@ function restoreQdiscs () {
 restoreQdiscs "veth2" "veth3"
 
 # Buffer size -------------------
-buffer_size="250000"
+buffer_size="10000"
 
 # Setup the qdiscs -----------------------------------------------------
 
@@ -153,15 +153,15 @@ elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
 fi
 eval "$tcCommandDelay"
 
-# Add a TBF qdisc at the end of chain for burstier network
-if [ -n "$trace" ]; then
-    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate 2Mbit
-
-elif [ -n "$bandwidth_dl" ]; then
-    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate "$bandwidth_ul"Mbit
-fi
+## Add a TBF qdisc at the end of chain for burstier network
+#if [ -n "$trace" ]; then
+#    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+#    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate 2Mbit
+#
+#elif [ -n "$bandwidth_dl" ]; then
+#    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+#    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate "$bandwidth_ul"Mbit
+#fi
 
 # Now do uplink! ---------------------------------------------------------------------
 # Bandwidth
@@ -197,15 +197,15 @@ elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
 fi
 eval "$tcCommandDelay"
 
-# Add a TBF qdisc at the end of chain for burstier network
-if [ -n "$trace" ]; then
-    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate 2Mbit
-
-elif [ -n "$bandwidth_ul" ]; then
-    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate "$bandwidth_ul"Mbit
-fi
+## Add a TBF qdisc at the end of chain for burstier network
+#if [ -n "$trace" ]; then
+#    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+#    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate 2Mbit
+#
+#elif [ -n "$bandwidth_ul" ]; then
+#    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
+#    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate "$bandwidth_ul"Mbit
+#fi
 
 
 
