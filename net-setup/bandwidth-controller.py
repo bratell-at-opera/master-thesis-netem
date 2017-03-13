@@ -119,17 +119,28 @@ cycled_list = itertools.cycle(bandwidth_means)
 time.sleep(2)
 buffer_size = 10000
 
+# Create a distribution of packet burst sizes
+# The probability of packet burst (n+1) is equal to
+# round(P(n)/2)
+burst_size_population = []
+times = 100
+for i in range(2, 10):
+    for dummy in range(0, times):
+        burst_size_population.append(i)
+    times = round(times / 2)
+
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
     # Max of 10 packets and bw_down / kernel tick rate
-    tbf_burst_size_down = random.randint(1, 10) * 1520
+    packets_to_burst = random.choice(burst_size_population)
+    tbf_burst_size_down = packets_to_burst * 1520
+    sys.stdout.write("TBF burst size on down-link: " +
+                     str(packets_to_burst) +
+                     "\n")
     if bw_down / 250 > tbf_burst_size_down:
         tbf_burst_size_down = bw_down / 250,
 
     bw_up = momental_bandwidth * bw_up_mp
-    tbf_burst_size_up = random.randint(1, 10) * 1520
-    if bw_up / 250 > tbf_burst_size_down:
-        tbf_burst_size_up = bw_up / 250,
 
     # Vary bucket size in order to get different burst-sizes
 
@@ -139,22 +150,7 @@ for momental_bandwidth in cycled_list:
                      str(bw_up) +
                      "Mbit/s \n")
     sys.stdout.flush()
-    # Bandwidth both up/down as well as for
-    # TBF at the end of chain
-#    subprocess.check_call(["tc",
-#                           "-s",
-#                           "qdisc",
-#                           "change",
-#                           "dev",
-#                           "veth2",
-#                           "root",
-#                           "handle",
-#                           "1:0",
-#                           "netem",
-#                           "rate",
-#                           str(bw_down) + "Mbit",
-#                           "limit",
-#                           str(buffer_size)])
+    # Bandwidth both up/down
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -172,18 +168,6 @@ for momental_bandwidth in cycled_list:
                            "rate",
                            str(bw_down) + "Mbit"])
 
-#    subprocess.check_call(["tc",
-#                           "-s",
-#                           "qdisc",
-#                           "change",
-#                           "dev",
-#                           "veth3",
-#                           "root",
-#                           "handle",
-#                           "1:0",
-#                           "netem",
-#                           "rate",
-#                           str(bw_up) + "Mbit"])
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -193,11 +177,9 @@ for momental_bandwidth in cycled_list:
                            "root",
                            "handle",
                            "1:0",
-                           "tbf",
-                           "burst",
-                           str(tbf_burst_size_up),
-                           "latency",
-                           "1000ms",
+                           "netem",
+                           "limit",
+                           str(buffer_size),
                            "rate",
                            str(bw_up) + "Mbit"])
 

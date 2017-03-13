@@ -117,7 +117,7 @@ buffer_size="10000"
 
 if [ -n "$trace" ]; then
     tc -s qdisc replace dev veth2 root handle 1:0 tbf burst 16kbit latency 1000ms rate 2Mbit #netem limit $buffer_size
-    tc -s qdisc replace dev veth3 root handle 1:0 tbf burst 16kbit latency 1000ms rate 2Mbit #netem limit $buffer_size
+    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
     $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
