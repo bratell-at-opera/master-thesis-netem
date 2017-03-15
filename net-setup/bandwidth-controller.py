@@ -87,6 +87,7 @@ with open(udp_trace_filename) as udp_trace_file:
         else:
             break
 
+mean_bandwidth = statistics.mean(bandwidth)
 sys.stdout.write(udp_trace_filename +
                  " is a trace of length " +
                  time_match +
@@ -94,7 +95,7 @@ sys.stdout.write(udp_trace_filename +
                  blocksize_match +
                  " bytes \n" +
                  "The average bandwidth of this trace is " +
-                 str(statistics.mean(bandwidth)) +
+                 str(mean_bandwidth) +
                  "Mbit/s.\n\n")
 
 # Get average bandwidth every n:th second
