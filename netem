@@ -52,6 +52,9 @@ function printHelp {
     echo ""
     echo "--trace-multiplyer-dl="
     echo "      Specify a multiplyer to scale the bandwidth trace for the down-link"
+    echo ""
+    echo "--open-connection"
+    echo "      Use an open connection over the duration of the test (HTTP/2 and QUIC only)."
     exit 1
 }
 
@@ -186,6 +189,10 @@ do
         --trace-multiplyer-ul=*)
             limit_args="$limit_args $argument"
             trace_mp_up=${argument#*=}
+            shift
+            ;;
+        --open-connection)
+            urlloader_args="$urlloader_args $argument"
             shift
             ;;
         *)

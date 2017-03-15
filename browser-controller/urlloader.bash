@@ -17,6 +17,9 @@ rm -rf $profile_dir/*
 # Read hostname from hostnamefile made by configure script
 source $this_folder/hostname.conf
 
+
+base_url="https://$hostname/"
+
 # Set extblog extension in bash in order for case-switch to work (disabled when executing script)
 shopt -s extglob
 # Handle in-arguments
@@ -29,6 +32,7 @@ do
             ;;
         -pq|--proto-quic)
             proto_quic=true
+            base_url="https://$hostname/files/"
             shift
             ;;
         -h2|--http2)
@@ -64,6 +68,10 @@ do
             with_gui=true
             shift
             ;;
+        --open-connection)
+            open_conn=true
+            shift
+            ;;
         *)
             echo "$0: INVALID ARG: $argument"
             shift
@@ -86,13 +94,17 @@ function start-browser {
     fi
 
     if [ "$protocol" = "--quic" ]; then
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     else
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     fi
     sleep 4
 }
 
+# Proto quic does not work with opera
+if [ "$proto_quic" = true ]; then
+    browser=google-chrome
+fi
 
 # Start browser
 start-browser $browser $profile_dir $hostname $with_gui $web_protocol
@@ -113,10 +125,10 @@ do
     fi
 
     echo "Fetching $url..."
-    if [ "$proto_quic" = true ]; then
-        chrome-har-capturer -o $har_filename "https://$hostname/files/$url"
+    if [ "$open_conn" ]; then
+        chrome-har-capturer -n "$base_url" -o $har_filename "$base_url""$url"
     else
-        chrome-har-capturer -o $har_filename "https://$hostname/$url"
+        chrome-har-capturer -o $har_filename "$base_url""$url"
     fi
     # If chrome-har-capturer fails we can't connect to browser
     if [ $? -ne 0 ]; then
