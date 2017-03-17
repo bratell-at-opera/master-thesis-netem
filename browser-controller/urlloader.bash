@@ -15,7 +15,7 @@ profile_dir="/tmp/netem.$browser"
 rm -rf $profile_dir/*
 
 # Read hostname from hostnamefile made by configure script
-source $this_folder/hostname.conf
+source $this_folder/../identifiers.conf
 
 
 base_url="https://$hostname/"

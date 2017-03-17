@@ -74,12 +74,20 @@ if [ "$genCerts" = true ] && ( [ "$certificateFile" = true ] || [ "$keyFile" = t
 fi
 
 # Set hostname for runner
-hostnameFile=$netemFolder/browser-controller/hostname.conf
+hostnameFile=$netemFolder/identifiers.conf
 touch $hostnameFile
 echo -n 'hostname=' > $hostnameFile
 echo -n \' >> $hostnameFile
 echo -n $hostname >> $hostnameFile
 echo \' >> $hostnameFile
+# Set random identifier for runner
+ns_identifier=$RANDOM
+echo -n 'ns_identifier=' >> $hostnameFile
+echo -n \' >> $hostnameFile
+echo -n $ns_identifier >> $hostnameFile
+echo \' >> $hostnameFile
+
+
 
 # --------------------- Cert generation
 mkdir -p $certFolder
@@ -123,5 +131,5 @@ _EOF_
 # -------------------- Virtual network setup
 # Setup network namespaces and infrastructure
 echo "Setting up virtual network infrastructure. Will ask for password in order to gain root access."
-sudo $netemFolder/net-setup/net-setup.bash $hostname
+sudo $netemFolder/net-setup/net-setup.bash $hostname $ns_identifier
 

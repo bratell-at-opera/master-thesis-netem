@@ -104,8 +104,11 @@ function restoreQdiscs () {
     done
 }
 
+# Read ns identifier from file
+source $netem_folder/identifiers.conf
+
 # Start by restoring qdiscs
-restoreQdiscs "veth2" "veth3"
+restoreQdiscs "veth2-$ns_identifier" "veth3-$ns_identifier"
 
 # Buffer size -------------------
 buffer_size="10000"
@@ -116,30 +119,30 @@ buffer_size="10000"
 # Bandwidth
 
 if [ -n "$trace" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
-    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
-    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
+    tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
+    tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
+    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul $ns_identifier &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
     touch $bw_pid_file
     echo $bw_pid > $bw_pid_file
 
 elif [ -n "$bandwidth_dl" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 netem "$bandwidth_dl"Mbit limit $buffer_size
+    tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem "$bandwidth_dl"Mbit limit $buffer_size
 else
-    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
+    tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
 fi
 
 
 # Loss
 if [ "$loss_move_to_burst_dl" ] && [ "$loss_move_to_gap_dl" ] && [ "$loss_rate_dl" ]; then
-    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0% limit $buffer_size
+    tc -s qdisc add dev veth2-$ns_identifier parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth2 parent 1:0 handle 2:0 netem limit $buffer_size
+    tc -s qdisc add dev veth2-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
-tcCommandDelay="tc -s qdisc add dev veth2 parent 2:0 handle 3:0 netem"
+tcCommandDelay="tc -s qdisc add dev veth2-$ns_identifier parent 2:0 handle 3:0 netem"
 
 if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms 50% distribution normal limit $buffer_size"
@@ -148,7 +151,7 @@ elif [ -n "$mean_delay_dl" ]; then
     tcCommandDelay="$tcCommandDelay"" delay ""$mean_delay_dl""ms limit $buffer_size"
 elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
-    restoreQdiscs veth2
+    restoreQdiscs veth2-$ns_identifier
     exit 11
 fi
 eval "$tcCommandDelay"
@@ -159,21 +162,21 @@ if [ -n "$trace" ]; then
     :
 elif [ -n "$bandwidth_ul" ]; then
     # Burst size ~10 packets, min burst size ~1 packet (L2 MTU = L3 MTU + 14 bytes)
-    tc -s qdisc replace dev veth3 root handle 1:0 netem rate "$bandwidth_ul"Mbit limit $buffer_size
+    tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem rate "$bandwidth_ul"Mbit limit $buffer_size
 else
-    tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
+    tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
 fi
 
 
 # Loss
 if [ "$loss_move_to_burst_ul" ] && [ "$loss_move_to_gap_ul" ] && [ "$loss_rate_ul" ]; then
-    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0% limit $buffer_size
+    tc -s qdisc add dev veth3-$ns_identifier parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth3 parent 1:0 handle 2:0 netem limit $buffer_size
+    tc -s qdisc add dev veth3-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size
 fi
 
 # Delay
-tcCommandDelay="tc -s qdisc add dev veth3 parent 2:0 handle 3:0 netem"
+tcCommandDelay="tc -s qdisc add dev veth3-$ns_identifier parent 2:0 handle 3:0 netem"
 
 if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal limit $buffer_size"
@@ -182,26 +185,25 @@ elif [ -n "$mean_delay_ul" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms limit $buffer_size"
 elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
-    restoreQdiscs veth3
+    restoreQdiscs veth3-$ns_identifier
     exit 11
 fi
 eval "$tcCommandDelay"
 
 
 # Enforce MTU sized packets only ---------------------------
-ip netns exec server-ns ethtool --offload veth0 gso off
-ip netns exec server-ns ethtool --offload veth0 tso off
-ip netns exec server-ns ethtool --offload veth0 gro off
+ip netns exec server-ns-$ns_identifier ethtool --offload veth0-$ns_identifier gso off
+ip netns exec server-ns-$ns_identifier ethtool --offload veth0-$ns_identifier tso off
+ip netns exec server-ns-$ns_identifier ethtool --offload veth0-$ns_identifier gro off
 
-ethtool --offload veth2 gso off
-ethtool --offload veth2 tso off
-ethtool --offload veth2 gro off
+ethtool --offload veth2-$ns_identifier gso off
+ethtool --offload veth2-$ns_identifier tso off
+ethtool --offload veth2-$ns_identifier gro off
 
-ethtool --offload veth3 gso off
-ethtool --offload veth3 tso off
-ethtool --offload veth3 gro off
+ethtool --offload veth3-$ns_identifier gso off
+ethtool --offload veth3-$ns_identifier tso off
+ethtool --offload veth3-$ns_identifier gro off
 
-ip netns exec client-ns2 ethtool --offload veth5 gso off
-ip netns exec client-ns2 ethtool --offload veth5 tso off
-ip netns exec client-ns2 ethtool --offload veth5 gro off
-
+ip netns exec client-ns-$ns_identifier ethtool --offload veth5-$ns_identifier gso off
+ip netns exec client-ns-$ns_identifier ethtool --offload veth5-$ns_identifier tso off
+ip netns exec client-ns-$ns_identifier ethtool --offload veth5-$ns_identifier gro off

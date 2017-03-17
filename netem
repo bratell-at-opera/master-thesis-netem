@@ -232,26 +232,29 @@ if [ $? != 0 ]; then
     exit 3
 fi
 
+# Read ns_identifier
+source $netem_folder/identifiers.conf
+
 # ------------------ RUN
 pid_file="/tmp/netem.server.pid"
 touch $pid_file
 # Setup a webserver of some sort
 if [ "$web_protocol" = "--http2" ]; then
-    ip netns exec server-ns $caddy -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+    ip netns exec server-ns-$ns_identifier $caddy -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
 elif [ "$web_protocol" = "--quic" ]; then
     if [ "$proto_quic" = true ]; then
-        ip netns exec server-ns $quic_server -cert $netem_folder/certs/cert.pem -key $netem_folder/certs/key.pem -root $netem_folder/webroot -quic_only -port 443 &
+        ip netns exec server-ns-$ns_identifier $quic_server -cert $netem_folder/certs/cert.pem -key $netem_folder/certs/key.pem -root $netem_folder/webroot -quic_only -port 443 &
     else
-        ip netns exec server-ns $caddy -quic -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+        ip netns exec server-ns-$ns_identifier $caddy -quic -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
     fi
 elif [ $web_protocol = "--http1" ]; then
-    ip netns exec server-ns $caddy -http2=false -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+    ip netns exec server-ns-$ns_identifier $caddy -http2=false -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
 else
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP1."
 fi
 
 # Run browser
-ip netns exec client-ns2 su $myUser -c "$netem_folder/browser-controller/urlloader.bash $urlloader_args"
+ip netns exec client-ns-$ns_identifier su $myUser -c "$netem_folder/browser-controller/urlloader.bash $urlloader_args"
 
 # ----------------- TEARDOWN
 # Close web server of some sort

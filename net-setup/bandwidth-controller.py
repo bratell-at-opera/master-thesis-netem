@@ -36,6 +36,8 @@ if not bw_down_mp:
 if not bw_up_mp:
     bw_up_mp = 1
 
+ns_identifier = sys.argv[4]
+
 # Get the block size used, ugly hack
 trace_contens = open(udp_trace_filename).read()
 blocksize_regex = re.compile('blocksize \d+')
@@ -157,7 +159,7 @@ for momental_bandwidth in cycled_list:
                            "qdisc",
                            "change",
                            "dev",
-                           "veth2",
+                           "veth2-" + ns_identifier,
                            "root",
                            "handle",
                            "1:0",
@@ -173,7 +175,7 @@ for momental_bandwidth in cycled_list:
                            "qdisc",
                            "change",
                            "dev",
-                           "veth3",
+                           "veth3-" + ns_identifier,
                            "root",
                            "handle",
                            "1:0",

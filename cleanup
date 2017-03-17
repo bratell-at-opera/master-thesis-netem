@@ -23,7 +23,6 @@ if [ "$allFiles" == true ]; then
     # Remove temoporary files
     rm -rf $scriptFolder/certs
     rm -f $scriptFolder/config/netem.Caddyfile
-    rm -f $scriptFolder/browser-controller/hostname.py
 fi
 
 
