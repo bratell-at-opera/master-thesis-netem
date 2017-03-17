@@ -74,6 +74,7 @@ urlloader_args=""
 delay=0
 trace_mp_down=1
 trace_mp_up=1
+connection_type="close"
 
 # Set extblog extension in bash in order for case-switch to work (disabled when executing script)
 shopt -s extglob
@@ -193,6 +194,7 @@ do
             ;;
         --open-connection)
             urlloader_args="$urlloader_args $argument"
+            connection_type="open"
             shift
             ;;
         *)
@@ -212,7 +214,7 @@ if [ "$web_protocol" = "--quic" ] && [ "$proto_quic" = true ]; then
 fi
 
 # Create an unique identifier for this r-un
-identifier="$proto_identifier"_bw
+identifier="$proto_identifier"-"$connection_type"_bw
 
 if [ "$trace" = true ]; then
     identifier="$identifier"-trace-"$trace_mp_down"-"$trace_mp_up"
