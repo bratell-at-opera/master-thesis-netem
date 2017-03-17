@@ -116,7 +116,7 @@ buffer_size="10000"
 # Bandwidth
 
 if [ -n "$trace" ]; then
-    tc -s qdisc replace dev veth2 root handle 1:0 tbf burst 16kbit latency 1000ms rate 2Mbit #netem limit $buffer_size
+    tc -s qdisc replace dev veth2 root handle 1:0 netem limit $buffer_size
     tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
     $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
@@ -145,7 +145,7 @@ if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms 50% distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_dl" ]; then
-    tcCommandDelay="$tcCommandDelay" delay "$mean_delay_dl"ms
+    tcCommandDelay="$tcCommandDelay"" delay ""$mean_delay_dl""ms limit $buffer_size"
 elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth2
@@ -153,23 +153,13 @@ elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
 fi
 eval "$tcCommandDelay"
 
-## Add a TBF qdisc at the end of chain for burstier network
-#if [ -n "$trace" ]; then
-#    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-#    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate 2Mbit
-#
-#elif [ -n "$bandwidth_dl" ]; then
-#    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-#    tc -s qdisc add dev veth2 parent 3:0 handle 4:0 tbf burst 16kbit latency 2000ms rate "$bandwidth_ul"Mbit
-#fi
-
 # Now do uplink! ---------------------------------------------------------------------
 # Bandwidth
 if [ -n "$trace" ]; then
     :
 elif [ -n "$bandwidth_ul" ]; then
     # Burst size ~10 packets, min burst size ~1 packet (L2 MTU = L3 MTU + 14 bytes)
-    tc -s qdisc replace dev veth3 root handle 1:0 tbf rate "$bandwidth_ul"Mbit limit $buffer_size
+    tc -s qdisc replace dev veth3 root handle 1:0 netem rate "$bandwidth_ul"Mbit limit $buffer_size
 else
     tc -s qdisc replace dev veth3 root handle 1:0 netem limit $buffer_size
 fi
@@ -189,24 +179,13 @@ if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_ul" ]; then
-    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms"
+    tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms limit $buffer_size"
 elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth3
     exit 11
 fi
 eval "$tcCommandDelay"
-
-## Add a TBF qdisc at the end of chain for burstier network
-#if [ -n "$trace" ]; then
-#    # Burst > bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-#    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate 2Mbit
-#
-#elif [ -n "$bandwidth_ul" ]; then
-#    # Burst = bandwidth / kernel tick rate (250 Hz on Debian / Ubuntu)
-#    tc -s qdisc add dev veth3 parent 3:0 handle 4:0 tbf burst 16kbit latency 200ms rate "$bandwidth_ul"Mbit
-#fi
-
 
 
 # Enforce MTU sized packets only ---------------------------

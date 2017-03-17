@@ -161,13 +161,12 @@ for momental_bandwidth in cycled_list:
                            "root",
                            "handle",
                            "1:0",
-                           "tbf",
-                           "burst",
-                           str(tbf_burst_size_down),
-                           "latency",
-                           "1000ms",
+                           "netem",
                            "rate",
-                           str(bw_down) + "Mbit"])
+                           str(bw_down),
+                           "limit",
+                           str(buffer_size)
+                           ])
 
     subprocess.check_call(["tc",
                            "-s",
