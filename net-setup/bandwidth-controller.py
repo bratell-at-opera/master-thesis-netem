@@ -7,6 +7,7 @@ import time
 import itertools
 import re
 import random
+import os
 
 
 if len(sys.argv) not in [2, 3, 4]:
@@ -36,7 +37,22 @@ if not bw_down_mp:
 if not bw_up_mp:
     bw_up_mp = 1
 
-ns_identifier = sys.argv[4]
+# Get ns identifier
+ns_identifier = None
+this_folder = os.path.dirname(os.path.realpath(__file__))
+identifier_filename = this_folder + \
+    os.path.sep + \
+    ".." + \
+    os.path.sep + \
+    "identifiers.conf"
+
+with open(identifier_filename) as identifier_file:
+    for line in identifier_file:
+        print(line)
+        if "ns_identifier" in line:
+            ns_identifier = line.split("=")[1].replace("\'", "").strip()
+
+print(ns_identifier)
 
 # Get the block size used, ugly hack
 trace_contens = open(udp_trace_filename).read()
@@ -134,14 +150,6 @@ for i in range(2, 10):
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
-    # Max of 10 packets and bw_down / kernel tick rate
-    packets_to_burst = random.choice(burst_size_population)
-    tbf_burst_size_down = packets_to_burst * 1520
-    sys.stdout.write("TBF burst size on down-link: " +
-                     str(packets_to_burst) +
-                     "\n")
-    if bw_down / 250 > tbf_burst_size_down:
-        tbf_burst_size_down = bw_down / 250,
 
     bw_up = momental_bandwidth * bw_up_mp
 
@@ -165,7 +173,7 @@ for momental_bandwidth in cycled_list:
                            "1:0",
                            "netem",
                            "rate",
-                           str(bw_down),
+                           str(bw_down) + "Mbit",
                            "limit",
                            str(buffer_size)
                            ])

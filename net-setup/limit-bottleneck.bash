@@ -121,7 +121,7 @@ buffer_size="10000"
 if [ -n "$trace" ]; then
     tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
     tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
-    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul $ns_identifier &> $netem_folder/logs/bw-controller.log &
+    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
     touch $bw_pid_file
@@ -138,7 +138,7 @@ fi
 if [ "$loss_move_to_burst_dl" ] && [ "$loss_move_to_gap_dl" ] && [ "$loss_rate_dl" ]; then
     tc -s qdisc add dev veth2-$ns_identifier parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_dl% $loss_move_to_gap_dl% $loss_rate_dl% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth2-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size
+    tc -s qdisc add dev veth2-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size loss 0%
 fi
 
 # Delay
@@ -172,7 +172,7 @@ fi
 if [ "$loss_move_to_burst_ul" ] && [ "$loss_move_to_gap_ul" ] && [ "$loss_rate_ul" ]; then
     tc -s qdisc add dev veth3-$ns_identifier parent 1:0 handle 2:0 netem loss gemodel $loss_move_to_burst_ul% $loss_move_to_gap_ul% $loss_rate_ul% 0% limit $buffer_size
 else
-    tc -s qdisc add dev veth3-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size
+    tc -s qdisc add dev veth3-$ns_identifier parent 1:0 handle 2:0 netem limit $buffer_size loss 0%
 fi
 
 # Delay
