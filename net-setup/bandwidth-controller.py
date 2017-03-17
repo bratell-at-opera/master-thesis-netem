@@ -6,7 +6,6 @@ import subprocess
 import time
 import itertools
 import re
-import random
 import os
 
 

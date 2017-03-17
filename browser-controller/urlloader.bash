@@ -10,9 +10,9 @@ with_gui=false
 debug_mode=false
 
 browser=opera
-# Clear profile dir
-profile_dir="/tmp/netem.$browser"
-rm -rf $profile_dir/*
+# Get identifier for run
+source $netem_folder/identifiers.conf
+
 
 # Read hostname from hostnamefile made by configure script
 source $this_folder/../identifiers.conf
@@ -79,6 +79,10 @@ do
     esac
 done
 
+# Clear profile dir
+profile_dir="/tmp/netem.$browser.$ns_identifier"
+rm -rf $profile_dir/*
+
 function start-browser {
     browser=$1
     profile_dir=$2
@@ -95,9 +99,9 @@ function start-browser {
 
     if [ "$protocol" = "--quic" ]; then
         echo "Use QUIC"
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     else
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=9222 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     fi
     sleep 4
 }
@@ -127,9 +131,9 @@ do
 
     echo "Fetching $url..."
     if [ "$open_conn" ]; then
-        chrome-har-capturer -n "$base_url" -o $har_filename "$base_url""$url"
+        chrome-har-capturer -n "$base_url" -p $ns_identifier -o $har_filename "$base_url""$url"
     else
-        chrome-har-capturer -o $har_filename "$base_url""$url"
+        chrome-har-capturer -o $har_filename -p $ns_identifier "$base_url""$url"
     fi
     # If chrome-har-capturer fails we can't connect to browser
     if [ $? -ne 0 ]; then
