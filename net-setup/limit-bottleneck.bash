@@ -92,8 +92,18 @@ if [ -z "$loss_rate_ul" ] || [ -z "$loss_move_to_gap_ul" ] || [ -z "$loss_move_t
 fi
 
 if [ -n "$trace" ] && ( [ -n "$bandwidth_dl" ] || [ -n "$bandwidth_ul" ] ); then
-    echo "You can't both use a trace and specify a bandwidth limit"
+    echo "You can't both use a trace and specify a bandwidth limit!"
     exit 3
+fi
+
+if [ -n "$trace" ] && ( [ -n "$delay_deviation_dl" ] || [ -n "$delay_deviation_ul" ] ); then
+    echo "You can't both use a trace and specify a delay distribution!"
+    exit 4
+fi
+
+if [ -n "$trace" ] && ( [ -z "$mean_delay_dl" ] || [ -z "$mean_delay_ul" ] ); then
+    echo "You need to specify a mean delay if you use a trace!"
+    exit 4
 fi
 
 # Used for restoring qdiscs
@@ -121,7 +131,7 @@ buffer_size="10000"
 if [ -n "$trace" ]; then
     tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
     tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
-    $netem_folder/net-setup/bandwidth-controller.py $trace $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
+    $netem_folder/net-setup/bandwidth-controller.py $trace $mean_delay_dl $mean_delay_ul $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
     bw_pid_file=/tmp/netem.bw-controller.pid
     touch $bw_pid_file

@@ -9,7 +9,7 @@ import re
 import os
 
 
-if len(sys.argv) not in [2, 3, 4]:
+if len(sys.argv) not in [4, 5, 6]:
     sys.stderr.write("Incorrect no arguments. \n")
     sys.exit(1)
 
@@ -22,12 +22,14 @@ second_average = 0.1
 
 # In args
 udp_trace_filename = sys.argv[1]
+delay_down = int(sys.argv[2])
+delay_up = int(sys.argv[3])
 bw_down_mp = None
 bw_up_mp = None
 
 try:
-    bw_down_mp = float(sys.argv[2])
-    bw_up_mp = float(sys.argv[3])
+    bw_down_mp = float(sys.argv[4])
+    bw_up_mp = float(sys.argv[5])
 except IndexError:
     pass
 
@@ -149,18 +151,24 @@ for i in range(2, 10):
 
 for momental_bandwidth in cycled_list:
     bw_down = momental_bandwidth * bw_down_mp
-
     bw_up = momental_bandwidth * bw_up_mp
 
-    # Vary bucket size in order to get different burst-sizes
+    # Calculate delay distribution. See master thesis for details
+    nfive_perc_limit_down = (1 / ((bw_down * 1000000) / (8.0 * 1500.0))) / 2.0
+    delay_sigma_down = (nfive_perc_limit_down / 1.96) * 1000
 
+    nfive_perc_limit_up = (1 / ((bw_up * 1000000) / (8.0 * 1500.0))) / 2.0
+    delay_sigma_up = (nfive_perc_limit_up / 1.96) * 1000
+
+    # Just debug stuff
     sys.stdout.write("Setting down bandwidth to " +
                      str(bw_down) +
                      " Mbit/s and up bandwidth to " +
                      str(bw_up) +
                      "Mbit/s \n")
-    sys.stdout.flush()
-    # Bandwidth both up/down
+    # sys.stdout.flush()
+    # Down-link
+    # Bandwidth
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -176,7 +184,29 @@ for momental_bandwidth in cycled_list:
                            "limit",
                            str(buffer_size)
                            ])
+    # Latency distribution
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "change",
+                           "dev",
+                           "veth2-" + ns_identifier,
+                           "parent",
+                           "2:0",
+                           "handle",
+                           "3:0",
+                           "netem",
+                           "delay",
+                           str(delay_down) + "ms",
+                           str(delay_sigma_down) + "ms",
+                           "distribution",
+                           "normal",
+                           "limit",
+                           str(buffer_size)
+                           ])
 
+    # Up
+    # Bandwidth
     subprocess.check_call(["tc",
                            "-s",
                            "qdisc",
@@ -191,5 +221,25 @@ for momental_bandwidth in cycled_list:
                            str(buffer_size),
                            "rate",
                            str(bw_up) + "Mbit"])
+    # LAtency distribution
+    subprocess.check_call(["tc",
+                           "-s",
+                           "qdisc",
+                           "change",
+                           "dev",
+                           "veth3-" + ns_identifier,
+                           "parent",
+                           "2:0",
+                           "handle",
+                           "3:0",
+                           "netem",
+                           "delay",
+                           str(delay_up) + "ms",
+                           str(delay_sigma_up) + "ms",
+                           "distribution",
+                           "normal",
+                           "limit",
+                           str(buffer_size)
+                           ])
 
     time.sleep(second_average)
