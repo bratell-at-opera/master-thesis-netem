@@ -205,6 +205,13 @@ done
 
 # ---------------------------
 
+if [ -z "$delay_deviation_dl" ]; then
+    deviation_dl=2.5
+fi
+if [ -z "$delay_deviation_ul" ]; then
+    deviation_ul=0.1
+fi
+
 if [ -z "$web_protocol" ]; then
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP."
 fi

@@ -9,7 +9,7 @@ import re
 import os
 
 
-if len(sys.argv) not in [4, 5, 6]:
+if len(sys.argv) not in [6, 7, 8]:
     sys.stderr.write("Incorrect no arguments. \n")
     sys.exit(1)
 
@@ -20,12 +20,31 @@ bytes_to_MB = 1000000
 bytes_to_bits = 8
 second_average = 0.1
 
+devation_params = {
+    "5": 1.64,
+    "2.5": 1.96,
+    "0.1": 3.1,
+    "0": 1000
+}
+
 # In args
 udp_trace_filename = sys.argv[1]
 delay_down = int(sys.argv[2])
 delay_up = int(sys.argv[3])
+delay_deviation_down = sys.argv[4]
+delay_deviation_up = sys.argv[5]
 bw_down_mp = None
 bw_up_mp = None
+deviation_param_down = None
+deviation_param_up = None
+
+try:
+    print(sys.argv)
+    deviation_param_down = devation_params[delay_deviation_down]
+    deviation_param_up = devation_params[delay_deviation_up]
+except KeyError:
+    sys.stderr.write("No entry for delay deviation.\n")
+    sys.exit(1)
 
 try:
     bw_down_mp = float(sys.argv[4])
@@ -155,10 +174,10 @@ for momental_bandwidth in cycled_list:
 
     # Calculate delay distribution. See master thesis for details
     nfive_perc_limit_down = (1 / ((bw_down * 1000000) / (8.0 * 1500.0))) / 2.0
-    delay_sigma_down = (nfive_perc_limit_down / 1.96) * 1000
+    delay_sigma_down = (nfive_perc_limit_down / deviation_param_down) * 1000
 
     nfive_perc_limit_up = (1 / ((bw_up * 1000000) / (8.0 * 1500.0))) / 2.0
-    delay_sigma_up = (nfive_perc_limit_up / 1.96) * 1000
+    delay_sigma_up = (nfive_perc_limit_up / deviation_param_up) * 1000
 
     # Just debug stuff
     sys.stdout.write("Setting down bandwidth to " +
