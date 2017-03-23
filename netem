@@ -207,9 +207,11 @@ done
 
 if [ -z "$delay_deviation_dl" ]; then
     deviation_dl=2.5
+    limit_args="$limit_args --delay-deviation-dl=2.5"
 fi
 if [ -z "$delay_deviation_ul" ]; then
     deviation_ul=0.1
+    limit_args="$limit_args --delay-deviation-ul=0.1"
 fi
 
 if [ -z "$web_protocol" ]; then
