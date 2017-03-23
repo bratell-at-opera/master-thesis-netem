@@ -74,14 +74,17 @@ identifiers = {
     "loss_prob_to_burst_ul": "",
     "loss_prob_to_gap_ul": "",
     "delay_ul": "",
-    "deviation_ul": "",
+    "deviation_ul": "0.1",
     "bandwidth_ul": "",
     "loss_rate_burst_dl": "",
     "loss_prob_to_burst_dl": "",
     "loss_prob_to_gap_dl": "",
     "delay_dl": "",
-    "deviation_dl": "",
-    "bandwidth_dl": ""
+    "deviation_dl": "2.5",
+    "bandwidth_dl": "",
+    "connection_type": "close",
+    "trace_mp_ul": "1",
+    "trace_mp_dl": "1"
 }
 
 # Handle in-arguments
@@ -130,6 +133,16 @@ for argument in sys.argv[1:]:
     elif "--bandwidth-dl=" in argument:
         identifiers["bandwidth_dl"] = \
             argument.replace("--bandwidth-dl=", "")
+    elif "--open-connection" in argument:
+        identifiers["connection_type"] = "open"
+    elif "--bw-trace=" in argument:
+        identifiers["bandwidth_dl"] = "trace"
+    elif "--trace-multiplyer-ul=" in argument:
+        identifiers["trace_mp_ul"] = \
+            argument.replace("--trace-multiplyer-ul=", "")
+    elif "--trace-multiplyer-dl=" in argument:
+        identifiers["trace_mp_dl"] = \
+            argument.replace("--trace-multiplyer-dl=", "")
     else:
         print_help(sys.argv[0], "Invalid argument: " + argument)
 
@@ -144,11 +157,21 @@ path_to_statistics = \
     "hars"
 match_string = \
     identifiers["web_protocol"] + \
-    "_bw-" + \
-    identifiers["bandwidth_dl"] + \
     "-" + \
-    identifiers["bandwidth_ul"] + \
-    "_loss-" + \
+    identifiers["connection_type"] + \
+    "_bw-"
+
+if identifiers["bandwidth_dl"] == "trace":
+    match_string += "trace-" + \
+        identifiers["trace_mp_dl"] + \
+        "-" + \
+        identifiers["trace_mp_ul"]
+else:
+    match_string += identifiers["bandwidth_dl"] + \
+        "-" + \
+        identifiers["bandwidth_ul"]
+
+match_string += "_loss-" + \
     identifiers["loss_prob_to_gap_dl"] + \
     "-" + \
     identifiers["loss_prob_to_burst_dl"] + \
