@@ -131,7 +131,7 @@ do
 
     echo "Fetching $url..."
     if [ "$open_conn" ]; then
-        chrome-har-capturer -n "$base_url"/index.html -p $ns_identifier -o $har_filename "$base_url""$url"
+        chrome-har-capturer -n "$base_url" -p $ns_identifier -o $har_filename "$base_url""$url"
     else
         chrome-har-capturer -o $har_filename -p $ns_identifier "$base_url""$url"
     fi
