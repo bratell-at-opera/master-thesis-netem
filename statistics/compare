@@ -38,7 +38,7 @@ with open(proto1_filename) as proto1_file:
         proto1_same_resource_wins = 0
         proto2_same_resource_wins = 0
         total_pages = 0
-        buffer_bytes = 1024
+        buffer_bytes = 10*1024
 
         print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format("URL",
                                                              "Fastest",
@@ -101,13 +101,20 @@ with open(proto1_filename) as proto1_file:
             fastest = "Tie"
             most_resources = "Tie"
             most_bytes = "Tie"
+            percentage_faster = 0
+            percentage_bytes = 0
+            nr_resources_more = 0
 
             if proto1_mean_time < proto2_mean_time:
                 fastest = proto1_name
                 proto1_time_wins = proto1_time_wins + 1
+                percentage_faster = 1 - \
+                    proto1_mean_time / float(proto2_mean_time)
             elif proto2_mean_time < proto1_mean_time:
                 fastest = proto2_name
                 proto2_time_wins = proto2_time_wins + 1
+                percentage_faster = 1 - \
+                    proto2_mean_time / float(proto1_mean_time)
 
             if proto1_mean_resources > proto2_mean_resources:
                 most_resources = proto1_name
@@ -120,21 +127,38 @@ with open(proto1_filename) as proto1_file:
                     proto1_same_resource_wins = proto1_same_resource_wins + 1
                 elif fastest == proto2_name:
                     proto2_same_resource_wins = proto2_same_resource_wins + 1
+            nr_resources_more = abs(proto1_mean_resources -
+                                    proto2_mean_resources)
 
-            if proto1_mean_bytes > proto2_mean_bytes + buffer_bytes:
-                most_bytes = proto1_name
-                proto1_bytes_wins = proto1_bytes_wins + 1
-            elif proto2_mean_bytes > proto1_mean_resources + buffer_bytes:
-                most_bytes = proto2_name
-                proto2_bytes_wins = proto2_bytes_wins + 1
+            perc_diff = 1 - min(
+                abs(
+                    proto2_mean_bytes /
+                    proto1_mean_bytes
+                ),
+                abs(
+                    proto1_mean_bytes /
+                    proto2_mean_bytes
+                )
+            )
+            if perc_diff > 0.01:
+                if proto1_mean_bytes > proto2_mean_bytes:
+                    most_bytes = proto1_name
+                    proto1_bytes_wins = proto1_bytes_wins + 1
+                elif proto2_mean_bytes > proto1_mean_resources:
+                    most_bytes = proto2_name
+                    proto2_bytes_wins = proto2_bytes_wins + 1
 
             total_pages = total_pages + 1
             print_line = \
                 '{:>25}  {:>25}  {:>25}  {:>25}'.format(
                     url,
-                    fastest,
-                    most_resources,
-                    most_bytes)
+                    fastest + " " + \
+                        str(round(100 * percentage_faster, 2)) + "%",
+                    most_resources + " " +\
+                        str(nr_resources_more),
+                    most_bytes + " " + \
+                        str(round(100*perc_diff,2)) + "%"
+                    )
 
             print(print_line)
         print("")
