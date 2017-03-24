@@ -231,8 +231,6 @@ for folder in matching_folders:
                 current_stats["status"] = False
                 current_stats["error"] = errors.json
                 output_log["webpages"][url].append(current_stats)
-                output_log["stats"]["failed_urls"] = \
-                    output_log["stats"]["failed_urls"] + 1
                 continue
 
             time = None
@@ -255,6 +253,7 @@ for folder in matching_folders:
                 continue
             current_stats["time"] = time
             current_stats["resource_count"] = 0
+            current_stats["failed_count"] = 0
             current_stats["total_bytes_fetched"] = 0
 
             for http_pair in data['entries']:
@@ -267,11 +266,12 @@ for folder in matching_folders:
                         if response["status"] == 200:
                             error_key_exist = "_error" in response
                             if error_key_exist is True and \
-                                response["_error"] != "":
-                                pass
+                              response["_error"] != "":
+                                current_stats["failed_count"] += 1
                             else:
                                 current_stats["resource_count"] = \
                                     current_stats["resource_count"] + 1
+
                         # Count the time
                         if type(http_pair["time"]) == "float":
                             current_stats["time"] = \

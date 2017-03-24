@@ -8,12 +8,24 @@ import json
 data = json.load(sys.stdin)
 
 values = []
-urls = 0
+nr_urls = 0
+urls = []
+url_means = []
+
 for url, stats_list in data["webpages"].items():
-    urls = urls + 1
+    nr_urls = nr_urls + 1
+    new_values = []
     for stat in stats_list:
         if stat["status"] is True:
             values.append(stat["time"])
+    urls.append(url)
+    if len(new_values) != 0:
+        url_means.append(
+            statistics.mean(new_values)
+            )
+    else:
+        url_means.append(0)
+    values += new_values
 
 median_load_time = statistics.median(values)
 max_load_time = max(values)
@@ -27,4 +39,22 @@ print("Median load time: " + str(median_load_time))
 print("Stddev: " + str(deviation))
 print("Max load time: " + str(max_load_time))
 print("Min load time: " + str(min_load_time))
-print("Nr of sites loaded: " + str(urls))
+print("Nr of sites loaded: " + str(nr_urls))
+failed = data["stats"]["failed_urls"]
+succeeded = data["stats"]["succeeded_urls"]
+fail_percentage = \
+    failed / \
+    float(failed + succeeded)
+print("Nr of tries failed to load: " + str(failed))
+print("Nr of tries succeeded to load: " + str(succeeded))
+print("Fail percentage = " + str(fail_percentage))
+
+if "--plot" in sys.argv or "-p" in sys.argv:
+    from matplotlib.pyplot import figure, clf, plot, xlabel, ylabel, xlim, ylim, title, grid, axes, show
+    figure(1)
+    plot(url, url_means)
+    xlabel('Website')
+    ylabel('Average load time')
+    title('Average load times')
+    grid(True)
+    show()

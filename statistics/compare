@@ -39,6 +39,10 @@ with open(proto1_filename) as proto1_file:
         proto2_same_resource_wins = 0
         total_pages = 0
         buffer_bytes = 10*1024
+        grand_proto1_failed_resources = 0
+        grand_proto2_failed_resources = 0
+        grand_proto1_resources = 0
+        grand_proto2_resources = 0
 
         print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format("URL",
                                                              "Fastest",
@@ -60,6 +64,8 @@ with open(proto1_filename) as proto1_file:
             total_proto2_bytes = 0
             divisor_proto1 = 0
             divisor_proto2 = 0
+            proto1_fails = 0
+            proto2_fails = 0
 
             for stat in proto1_stats_list:
                 if stat["status"] is True:
@@ -67,6 +73,10 @@ with open(proto1_filename) as proto1_file:
                         total_proto1_time + stat["time"]
                     total_proto1_resources = \
                         total_proto1_resources + stat["resource_count"]
+                    grand_proto1_resources = \
+                        grand_proto1_resources + stat["resource_count"]
+                    grand_proto1_failed_resources += \
+                        stat["failed_count"]
                     total_proto1_bytes = \
                         total_proto1_bytes + stat["total_bytes_fetched"]
                     divisor_proto1 = divisor_proto1 + 1
@@ -75,6 +85,10 @@ with open(proto1_filename) as proto1_file:
                     total_proto2_time = total_proto2_time + stat["time"]
                     total_proto2_resources = \
                         total_proto2_resources + stat["resource_count"]
+                    grand_proto2_resources = \
+                        grand_proto2_resources + stat["resource_count"]
+                    grand_proto2_failed_resources = \
+                        grand_proto2_failed_resources + stat["failed_count"]
                     total_proto2_bytes = \
                         total_proto2_bytes + stat["total_bytes_fetched"]
                     divisor_proto2 = divisor_proto2 + 1
@@ -165,8 +179,29 @@ with open(proto1_filename) as proto1_file:
         print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
         print("----------------------")
         proto1_data["identifiers"].pop("web_protocol", None)
-        print(str(proto1_data["identifiers"]))
+        for key in proto1_data["identifiers"].keys():
+            value = proto1_data["identifiers"][key]
+            if value != "":
+                print(key + " = " + value)
         print("----------------------")
+        print("")
+        print(
+            proto1_name +
+            " fails to load resources " +
+            str(grand_proto1_failed_resources / float(
+                                                     grand_proto1_failed_resources +
+                                                     grand_proto1_resources)) +
+            " % of the time."
+            )
+        print(
+            proto2_name +
+            " fails to load resources " +
+            str(grand_proto2_failed_resources / float(
+                                                     grand_proto2_failed_resources +
+                                                     grand_proto2_resources)) +
+            " % of the time."
+            )
+        print("")
         print("In case both fetches same ammount of resources (" +
               str(total_pages - proto1_resources_wins - proto2_resources_wins) +
               " websites), " +
