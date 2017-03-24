@@ -47,8 +47,8 @@ except KeyError:
     sys.exit(1)
 
 try:
-    bw_down_mp = float(sys.argv[4])
-    bw_up_mp = float(sys.argv[5])
+    bw_down_mp = float(sys.argv[6])
+    bw_up_mp = float(sys.argv[7])
 except IndexError:
     pass
 
