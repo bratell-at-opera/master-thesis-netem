@@ -91,6 +91,7 @@ function start-browser {
     protocol=$5
 
     # Clear profile
+    sleep 3
     rm -rf $profile_dir
 
     if [ "$with_gui" = false ]; then
