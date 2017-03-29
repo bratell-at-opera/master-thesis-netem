@@ -91,7 +91,7 @@ function start-browser {
     protocol=$5
 
     # Clear profile
-    sleep 3
+    sleep 2
     rm -rf $profile_dir
 
     if [ "$with_gui" = false ]; then
@@ -104,7 +104,7 @@ function start-browser {
     else
         $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     fi
-    sleep 4
+    sleep 10
 }
 
 # Proto quic does not work with opera
@@ -141,6 +141,9 @@ do
         killall $browser
         start-browser $browser $profile_dir $hostname $with_gui $protocol
     fi
+    # Without this sleep, sometimes the browser and chrome-har-capturer
+    # Gets out of sync
+    sleep 5
 
 done 9< $this_folder/../config/urls.txt
 
