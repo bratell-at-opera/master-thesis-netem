@@ -141,8 +141,8 @@ with open(proto1_filename) as proto1_file:
                     proto1_same_resource_wins = proto1_same_resource_wins + 1
                 elif fastest == proto2_name:
                     proto2_same_resource_wins = proto2_same_resource_wins + 1
-            nr_resources_more = abs(proto1_mean_resources -
-                                    proto2_mean_resources)
+            nr_resources_more = round(abs(proto1_mean_resources -
+                proto2_mean_resources), 2)
 
             perc_diff = 1 - min(
                 abs(

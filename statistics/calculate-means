@@ -39,12 +39,13 @@ print("Median load time: " + str(median_load_time))
 print("Stddev: " + str(deviation))
 print("Max load time: " + str(max_load_time))
 print("Min load time: " + str(min_load_time))
-print("Nr of sites loaded: " + str(nr_urls))
+print("Different URLs loaded: " + str(nr_urls))
 failed = data["stats"]["failed_urls"]
 succeeded = data["stats"]["succeeded_urls"]
 fail_percentage = \
-    failed / \
-    float(failed + succeeded)
+    100 * \
+    (failed / \
+     float(failed + succeeded))
 print("Nr of tries failed to load: " + str(failed))
 print("Nr of tries succeeded to load: " + str(succeeded))
 print("Fail percentage = " + str(fail_percentage))

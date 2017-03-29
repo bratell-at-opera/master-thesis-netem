@@ -281,7 +281,8 @@ for folder in matching_folders:
                         # Add resource size to statistics
                         current_stats["total_bytes_fetched"] = \
                             current_stats["total_bytes_fetched"] +\
-                            response["content"]["size"]
+                            response["_transferSize"]
+                            #response["content"]["size"]
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
             output_log["stats"]["succeeded_urls"] = \
