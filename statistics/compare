@@ -44,12 +44,11 @@ with open(proto1_filename) as proto1_file:
         grand_proto1_resources = 0
         grand_proto2_resources = 0
 
-        print_line = '{:>25}  {:>25}  {:>25}  {:>25}'.format("URL",
+        print_line = '{:<17}  {:<17}  {:<17}  {:<17}'.format("URL",
                                                              "Fastest",
                                                              "Most_resources",
                                                              "Most_bytes")
         print(print_line)
-        print("---------------------------------")
 
         for url, proto1_stats_list in proto1_data["webpages"].items():
             if url not in proto2_data["webpages"]:
@@ -164,7 +163,7 @@ with open(proto1_filename) as proto1_file:
 
             total_pages = total_pages + 1
             print_line = \
-                '{:>25}  {:>25}  {:>25}  {:>25}'.format(
+                '{:<17}  {:<17}  {:<17}  {:<17}'.format(
                     url,
                     fastest + " " + \
                         str(round(100 * percentage_faster, 2)) + "%",
