@@ -133,7 +133,7 @@ if [ -n "$trace" ]; then
     tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
     $netem_folder/net-setup/bandwidth-controller.py $trace $mean_delay_dl $mean_delay_ul $delay_deviation_dl $delay_deviation_ul $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
     bw_pid=$!
-    bw_pid_file=/tmp/netem.bw-controller.pid
+    bw_pid_file=/tmp/netem.$ns_identifier.bw-controller.pid
     touch $bw_pid_file
     echo $bw_pid > $bw_pid_file
 

@@ -247,7 +247,7 @@ fi
 source $netem_folder/identifiers.conf
 
 # ------------------ RUN
-pid_file="/tmp/netem.server.pid"
+pid_file="/tmp/netem.$ns_identifier.server.pid"
 touch $pid_file
 # Setup a webserver of some sort
 if [ "$web_protocol" = "--http2" ]; then
@@ -275,6 +275,6 @@ else
     kill -QUIT $( cat $pid_file )
 fi
 if [ "$trace" = true ]; then
-    kill $(cat /tmp/netem.bw-controller.pid)
+    kill $(cat /tmp/netem.$ns_identifier.bw-controller.pid)
 fi
 
