@@ -113,7 +113,7 @@ for i in range(1, 5):
                 target_folder + "scen" + str(i) + "_" + test_type + "_http1.json",
                 target_folder + "scen" + str(i) + "_" + test_type + "_pq.json",
             ],
-            stdout=open(target_folder + "comp_pq_http1_scen" + str(i) + "_" + test_type, "w+")
+            stdout=open(target_folder + "comp_pq_http1_scen" + str(i) + "_" + test_type + ".txt", "w+")
         )
         subprocess.check_call(
             [
@@ -121,5 +121,5 @@ for i in range(1, 5):
                 target_folder + "scen" + str(i) + "_" + test_type + "_http2.json",
                 target_folder + "scen" + str(i) + "_" + test_type + "_pq.json",
             ],
-            stdout=open(target_folder + "comp_pq_http1_scen" + str(i) + "_" + test_type, "w+")
+            stdout=open(target_folder + "comp_pq_http2_scen" + str(i) + "_" + test_type + ".txt", "w+")
         )
