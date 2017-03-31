@@ -3,12 +3,15 @@
 import sys
 import json
 
-
-if len(sys.argv) != 3:
+prints = False
+if len(sys.argv) < 3 or len(sys.argv) > 4:
     sys.stderr.write("Usage: \n")
     sys.stderr.write("      " + sys.argv[0] + \
                      " path/to/statistics/file1 path/to/file2\n")
     sys.exit(1)
+if len(sys.argv) == 4:
+    if sys.argv[3] == "--print":
+        prints = True
 
 proto1_filename = sys.argv[1]
 proto2_filename = sys.argv[2]
@@ -172,71 +175,72 @@ with open(proto1_filename) as proto1_file:
                     most_bytes + " " + \
                         str(round(100*perc_diff,2)) + "%"
                     )
-
             print(print_line)
-        print("")
-        print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
-        print("----------------------")
-        proto1_data["identifiers"].pop("web_protocol", None)
-        for key in proto1_data["identifiers"].keys():
-            value = proto1_data["identifiers"][key]
-            if value != "":
-                print(key + " = " + value)
-        print("----------------------")
-        print("")
-        print(
-            proto1_name +
-            " fails to load resources " +
-            str(grand_proto1_failed_resources / float(
-                                                     grand_proto1_failed_resources +
-                                                     grand_proto1_resources)) +
-            " % of the time."
-            )
-        print(
-            proto2_name +
-            " fails to load resources " +
-            str(grand_proto2_failed_resources / float(
-                                                     grand_proto2_failed_resources +
-                                                     grand_proto2_resources)) +
-            " % of the time."
-            )
-        print("")
-        print("In case both fetches same ammount of resources (" +
-              str(total_pages - proto1_resources_wins - proto2_resources_wins) +
-              " websites), " +
-              proto1_name + " is faster on " +
-              str(proto1_same_resource_wins) +
-              " sites and " +
-              proto2_name + " is faster on " +
-              str(proto2_same_resource_wins) +
-              " sites")
-        print("")
-        print(proto1_name + \
-            " is faster on " + \
-            str(proto1_time_wins) + \
-            " of the tested web pages.")
-        print(proto2_name + \
-            " is faster on " + \
-            str(proto2_time_wins) + \
-            " of the tested web pages.")
-        print("")
-        print(proto1_name + \
-            " fetches more resources on " + \
-            str(proto1_resources_wins) + \
-            " of the tested web pages.")
-        print(proto2_name + \
-            " fetches more resources on " + \
-            str(proto2_resources_wins) + \
-            " of the tested web pages.")
-        print("")
-        print(proto1_name + \
-            " fetches more bytes on " + \
-            str(proto1_bytes_wins) + \
-            " of the tested web pages.")
-        print(proto2_name + \
-            " fetches more bytes on " + \
-            str(proto2_bytes_wins) + \
-            " of the tested web pages.")
 
-        print("")
-        print("Total nr of tested web-pages: " + str(total_pages))
+        if prints:
+            print("")
+            print("SUMMARY - ALL RESULTS BASED ON AVERAGES PER WEBSITE")
+            print("----------------------")
+            proto1_data["identifiers"].pop("web_protocol", None)
+            for key in proto1_data["identifiers"].keys():
+                value = proto1_data["identifiers"][key]
+                if value != "":
+                    print(key + " = " + value)
+            print("----------------------")
+            print("")
+            print(
+                proto1_name +
+                " fails to load resources " +
+                str(grand_proto1_failed_resources / float(
+                                                         grand_proto1_failed_resources +
+                                                         grand_proto1_resources)) +
+                " % of the time."
+                )
+            print(
+                proto2_name +
+                " fails to load resources " +
+                str(grand_proto2_failed_resources / float(
+                                                         grand_proto2_failed_resources +
+                                                         grand_proto2_resources)) +
+                " % of the time."
+                )
+            print("")
+            print("In case both fetches same ammount of resources (" +
+                  str(total_pages - proto1_resources_wins - proto2_resources_wins) +
+                  " websites), " +
+                  proto1_name + " is faster on " +
+                  str(proto1_same_resource_wins) +
+                  " sites and " +
+                  proto2_name + " is faster on " +
+                  str(proto2_same_resource_wins) +
+                  " sites")
+            print("")
+            print(proto1_name + \
+                " is faster on " + \
+                str(proto1_time_wins) + \
+                " of the tested web pages.")
+            print(proto2_name + \
+                " is faster on " + \
+                str(proto2_time_wins) + \
+                " of the tested web pages.")
+            print("")
+            print(proto1_name + \
+                " fetches more resources on " + \
+                str(proto1_resources_wins) + \
+                " of the tested web pages.")
+            print(proto2_name + \
+                " fetches more resources on " + \
+                str(proto2_resources_wins) + \
+                " of the tested web pages.")
+            print("")
+            print(proto1_name + \
+                " fetches more bytes on " + \
+                str(proto1_bytes_wins) + \
+                " of the tested web pages.")
+            print(proto2_name + \
+                " fetches more bytes on " + \
+                str(proto2_bytes_wins) + \
+                " of the tested web pages.")
+
+            print("")
+            print("Total nr of tested web-pages: " + str(total_pages))
