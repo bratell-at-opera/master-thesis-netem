@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import statistics
+import sys
+import json
+import scipy.stats
+import numpy
+
+data = json.load(sys.stdin)
+
+values = []
+nr_urls = 0
+urls = []
+url_means = []
+url_deviation = []
+
+for url, stats_list in data["webpages"].items():
+    nr_urls = nr_urls + 1
+    new_values = []
+    for stat in stats_list:
+        if stat["status"] is True:
+            values.append(stat["time"])
+    urls.append(url)
+    if len(new_values) != 0:
+        url_means.append(
+            statistics.mean(new_values)
+            )
+        url_deviation.append(
+            statistics.stdev(new_values)
+            )
+    else:
+        url_means.append(0)
+        url_deviation.append(0)
+    values += new_values
+
+median_load_time = statistics.median(values)
+max_load_time = max(values)
+min_load_time = min(values)
+avg_load_time = statistics.mean(values)
+deviation = statistics.stdev(values)
+
+print("Avg load time: " + str(avg_load_time))
+print("Median load time: " + str(median_load_time))
+print("Stddev: " + str(deviation))
+print("Max load time: " + str(max_load_time))
+print("Min load time: " + str(min_load_time))
+print("Different URLs loaded: " + str(nr_urls))
+failed = data["stats"]["failed_urls"]
+succeeded = data["stats"]["succeeded_urls"]
+fail_percentage = \
+    100 * \
+    (failed / \
+     float(failed + succeeded))
+print("Nr of tries failed to load: " + str(failed))
+print("Nr of tries succeeded to load: " + str(succeeded))
+print("Fail percentage = " + str(fail_percentage))
+
+if "--plot" in sys.argv or "-p" in sys.argv:
+    x = range(0,len(urls))
+    import matplotlib.pyplot as plot
+    plot.figure(1)
+    fig, ax = plot.subplots(figsize=(7, 4))
+    ax.errorbar(x, url_means, yerr=numpy.multiply(numpy.array(url_deviation), 1.96), fmt='o')
+    plot.xticks(x, urls)
+    #plot(url, url_means, yerr=(numpy.multiply(numpy.array(url_deviation), 1.96)))
+    plot.xlabel('Website')
+    plot.ylabel('Average load time')
+    plot.title('Average load times')
+    plot.grid(True)
+    plot.show()
