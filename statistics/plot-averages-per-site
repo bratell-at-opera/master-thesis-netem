@@ -5,8 +5,9 @@ import sys
 import json
 import scipy.stats
 import numpy
+import matplotlib.pyplot as plot
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     print("Incorrect nr args!")
     sys.exit(1)
 
@@ -18,50 +19,57 @@ for url in open(sys.argv[1]):
     urls.append(url.strip())
 
 protocol_data = {
-    "PROTO-QUIC": json.loads(open(sys.argv[2])),
-    "HTTP2": json.loads(open(sys.argv[3])),
-    "HTTP": json.loads(open(sys.argv[4])),
+    "PROTO-QUIC": json.loads(open(sys.argv[2]).read()),
+    "HTTP2": json.loads(open(sys.argv[3]).read()),
+    "HTTP": json.loads(open(sys.argv[4]).read())
 }
-url_means = []
-url_deviation = []
+protocol_results = {
+    "PROTO-QUIC": dict(),
+    "HTTP2": dict(),
+    "HTTP": dict()
+}
 
-for url in urls:
-    stats_list = data["webpages"][url]
-    nr_urls = nr_urls + 1
-    new_values = []
-    for stat in stats_list:
-        if stat["status"] is True:
-            new_values.append(stat["total_bytes_fetched"])
-    if len(new_values) != 0:
-        url_means.append(
-            statistics.mean(new_values)
-            )
-        if len(new_values) >= 2:
-            url_deviation.append(
-                statistics.stdev(new_values)
+for protocol in protocol_results.keys():
+    protocol_results[protocol]["url_means"] = []
+    protocol_results[protocol]["url_deviation"] = []
+
+
+for protocol in protocol_data.keys():
+    data = protocol_data[protocol]
+    for url in urls:
+        stats_list = data["webpages"][url]
+        nr_urls = nr_urls + 1
+        new_values = []
+        for stat in stats_list:
+            if stat["status"] is True:
+                new_values.append(stat["total_bytes_fetched"])
+        if len(new_values) != 0:
+            protocol_results[protocol]["url_means"].append(
+                statistics.mean(new_values)
                 )
+            if len(new_values) > 1:
+                protocol_results[protocol]["url_deviation"].append(
+                    statistics.stdev(new_values)
+                    )
+            else:
+                protocol_results[protocol]["url_deviation"].append(0)
         else:
-            url_deviation.append(0)
-    else:
-        url_means.append(0)
-        url_deviation.append(0)
-    values += new_values
-
-median_load_time = statistics.median(values)
-max_load_time = max(values)
-min_load_time = min(values)
-avg_load_time = statistics.mean(values)
-deviation = statistics.stdev(values)
+            protocol_results[protocol]["url_means"].append(0)
+            protocol_results[protocol]["url_deviation"].append(0)
+        values += new_values
 
 x = range(0,len(urls))
-import matplotlib.pyplot as plot
 #plot.figure(1)
 fig, ax = plot.subplots()
-ax.errorbar(x, url_means, yerr=numpy.multiply(numpy.array(url_deviation), 1.96), fmt='o')
+
+for protocol in protocol_results.keys():
+    ax.errorbar(x, protocol_results[protocol]["url_means"], yerr=numpy.multiply(numpy.array(protocol_results[protocol]["url_deviation"]), 1.96), fmt='o', label=protocol)
+
 plot.xticks(x, urls)
 #plot(url, url_means, yerr=(numpy.multiply(numpy.array(url_deviation), 1.96)))
 plot.xlabel('Website')
 plot.ylabel('Average bytes fetched')
 plot.title('Average bytes fetched')
 plot.grid(True)
+plot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
 plot.show()
