@@ -95,7 +95,6 @@ ikea.com
 imgur.com
 indiatimes.com
 intuit.com
-irctc.co.in
 jd.com
 k618.cn
 kaskus.co.id
@@ -208,7 +207,6 @@ tribunnews.com
 tripadvisor.com
 tube8.com
 tumblr.com
-twitter.com
 txxx.com
 udemy.com
 uol.com.br
