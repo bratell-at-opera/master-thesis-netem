@@ -140,6 +140,12 @@ do
     if [ $? -ne 0 ]; then
         killall $browser
         start-browser $browser $profile_dir $hostname $with_gui $protocol
+        # Retry the site again
+        if [ "$open_conn" ]; then
+            chrome-har-capturer -n "$base_url" -p $ns_identifier -o $har_filename "$base_url""$url"
+        else
+            chrome-har-capturer -o $har_filename -p $ns_identifier "$base_url""$url"
+        fi
     fi
     # Without this sleep, sometimes the browser and chrome-har-capturer
     # Gets out of sync
