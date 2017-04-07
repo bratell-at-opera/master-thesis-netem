@@ -198,7 +198,7 @@ matching_folders = []
 for folder in os.listdir(path_to_statistics):
     if match_string in folder:
         matching_folders.append(folder)
-sys.stderr.write("Matching folders found: \n")
+sys.stderr.write("Matching folders found for string: " + match_string + "\n")
 for entry in matching_folders:
     sys.stderr.write(entry + "\n")
 # Generate some statistics (finally!)
