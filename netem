@@ -169,6 +169,10 @@ do
             urlloader_args="$urlloader_args $argument"
             shift
             ;;
+        --webserver=*)
+            webserver=${argument#*=}
+            shift
+            ;;
         -g|--with-gui)
             urlloader_args="$urlloader_args $argument"
             shift
@@ -251,13 +255,19 @@ pid_file="/tmp/netem.$ns_identifier.server.pid"
 touch $pid_file
 # Setup a webserver of some sort
 if [ "$web_protocol" = "--http2" ]; then
-    ip netns exec server-ns-$ns_identifier $caddy -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+    if [ "$webserver" = "nginx" ]; then
+        ip netns exec server-ns-$ns_identifier nginx -p $(realpath $(dirname .)) -c config/nginx.conf
+    else
+        ip netns exec server-ns-$ns_identifier $caddy -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
+    fi
+
 elif [ "$web_protocol" = "--quic" ]; then
     if [ "$proto_quic" = true ]; then
         ip netns exec server-ns-$ns_identifier $quic_server -cert $netem_folder/certs/cert.pem -key $netem_folder/certs/key.pem -root $netem_folder/webroot -quic_only -port 443 &
     else
         ip netns exec server-ns-$ns_identifier $caddy -quic -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
     fi
+
 elif [ $web_protocol = "--http1" ]; then
     ip netns exec server-ns-$ns_identifier $caddy -http2=false -conf="$netem_folder/config/netem.Caddyfile" -pidfile="$pid_file" &
 else

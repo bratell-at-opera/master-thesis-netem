@@ -128,6 +128,40 @@ tls $certFolder/cert.pem $certFolder/key.pem {
 
 _EOF_
 
+# ------------------- nginx config
+nginxConf=$configFolder/nginx.conf
+touch $nginxConf
+
+cat > $nginxConf << _EOF_
+user $USER;
+worker_processes auto;
+pid /tmp/netem.$ns_identifier.server.pid;
+
+events {
+	worker_connections 768;
+	# multi_accept on;
+}
+
+http {
+    server {
+        listen 443 http2;
+        server_name example.com www.example.com;
+
+        ssl_certificate $certFolder/cert.pem;
+        ssl_certificate_key $certFolder/key.pem;
+        ssl_dhparam $certFolder/dhparam.pem;
+
+        root $webRoot;
+
+        error_log $logFolder/nginx.error.log;
+        access_log $logFolder/nginx.access.log;
+
+        include $configFolder/tls.conf;
+        include $configFolder/nginx.commons;
+    }
+}
+_EOF_
+
 # -------------------- Virtual network setup
 # Setup network namespaces and infrastructure
 echo "Setting up virtual network infrastructure. Will ask for password in order to gain root access."
