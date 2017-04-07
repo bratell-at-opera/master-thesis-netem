@@ -218,8 +218,14 @@ if [ -z "$delay_deviation_ul" ]; then
     limit_args="$limit_args --delay-deviation-ul=0.1"
 fi
 
+# Sanity checks
 if [ -z "$web_protocol" ]; then
     printHelp $0 "No protocol chosen! Please choose at least one of the protocols QUIC, HTTP2 or HTTP."
+fi
+
+if [ -n "$webserver" ] && ( [ "$web_protocol" = "--quic" ] || [ "$web_protocol" = "--http1" ] )
+then
+    printHelp $0 "You can only use chosen protocol $web_protocol with default web server."
 fi
 
 if [ "$web_protocol" = "--quic" ] && [ "$proto_quic" = true ]; then
