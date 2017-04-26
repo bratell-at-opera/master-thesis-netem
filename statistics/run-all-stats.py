@@ -53,11 +53,26 @@ scen4 = [
     "--bw-trace=udp-traces/storo_4x_700kbps_120s_tv.log"
 ]
 
+scen5 = [
+    "--delay-dl=300",
+    "--delay-ul=300",
+    "--trace-multiplyer-ul=0.6",
+    "--trace-multiplyer-dl=1.2",
+    "--delay-deviation-ul=0.1",
+    "--delay-deviation-dl=2.5",
+    "--bw-trace=udp-traces/storo_4x_700kbps_120s_tv.log"
+]
+
+scen6 = [
+]
+
 scenarios = []
 scenarios.append(scen1)
 scenarios.append(scen2)
 scenarios.append(scen3)
 scenarios.append(scen4)
+scenarios.append(scen5)
+scenarios.append(scen6)
 
 i = 1
 for scen in scenarios:
@@ -105,7 +120,7 @@ for scen in scenarios:
         )
     i += 1
 
-for i in range(1, 5):
+for i in range(1, len(scenarios)+1):
     for test_type in ["close", "open"]:
         subprocess.check_call(
             [

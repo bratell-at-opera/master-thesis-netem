@@ -279,17 +279,17 @@ for folder in matching_folders:
                                 current_stats["resource_count"] = \
                                     current_stats["resource_count"] + 1
 
-                        # Count the time
-                        if type(http_pair["time"]) == "float":
-                            current_stats["time"] = \
-                                max(
-                                    http_pair["time"],
-                                    current_stats["time"])
-                        # Add resource size to statistics
-                        current_stats["total_bytes_fetched"] = \
-                            current_stats["total_bytes_fetched"] +\
-                            + response["content"]["size"]
-                            #response["_transferSize"]
+                    # Count the time
+                    if type(http_pair["time"]) == "float":
+                        current_stats["time"] = \
+                            max(
+                                http_pair["time"],
+                                current_stats["time"])
+                    # Add resource size to statistics
+                    current_stats["total_bytes_fetched"] = \
+                        current_stats["total_bytes_fetched"] +\
+                        + response["content"]["size"]
+                        #response["_transferSize"]
             current_stats["status"] = True
             output_log["webpages"][url].append(current_stats)
             output_log["stats"]["succeeded_urls"] = \
