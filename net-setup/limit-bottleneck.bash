@@ -138,7 +138,7 @@ if [ -n "$trace" ]; then
     echo $bw_pid > $bw_pid_file
 
 elif [ -n "$bandwidth_dl" ]; then
-    tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem "$bandwidth_dl"Mbit limit $buffer_size
+    tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem rate "$bandwidth_dl"Mbit limit $buffer_size
 else
     tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
 fi
