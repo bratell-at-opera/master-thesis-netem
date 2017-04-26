@@ -66,6 +66,14 @@ scen5 = [
 scen6 = [
 ]
 
+scen5 = [
+    "--delay-dl=300",
+    "--delay-ul=300",
+    "--bandwidth-dl=10",
+    "--bandwidth-ul=10"
+]
+
+
 scenarios = []
 scenarios.append(scen1)
 scenarios.append(scen2)
