@@ -210,11 +210,11 @@ done
 # ---------------------------
 
 if [ -z "$delay_deviation_dl" ] && [ "$trace" = true ]; then
-    deviation_dl=2.5
+    deviation_dl=0
     limit_args="$limit_args --delay-deviation-dl=2.5"
 fi
 if [ -z "$delay_deviation_ul" ] && [ "$trace" = true ]; then
-    deviation_ul=0.1
+    deviation_ul=0
     limit_args="$limit_args --delay-deviation-ul=0.1"
 fi
 
