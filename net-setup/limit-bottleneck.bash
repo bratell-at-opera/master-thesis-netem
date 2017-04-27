@@ -96,11 +96,6 @@ if [ -n "$trace" ] && ( [ -n "$bandwidth_dl" ] || [ -n "$bandwidth_ul" ] ); then
     exit 3
 fi
 
-if [ -n "$trace" ] && ( [ -z "$delay_deviation_dl" ] || [ -z "$delay_deviation_ul" ] ); then
-    delay_deviation_dl=0
-    delay_deviation_ul=0
-fi
-
 if [ -n "$trace" ] && ( [ -z "$mean_delay_dl" ] || [ -z "$mean_delay_ul" ] ); then
     echo "You need to specify a mean delay if you use a trace!"
     exit 4
@@ -129,6 +124,13 @@ buffer_size="10000"
 # Bandwidth
 
 if [ -n "$trace" ]; then
+    if [ -z "$delay_deviation_dl" ]; then
+        delay_deviation_dl=0
+    fi
+    if [ -z "$delay_deviation_ul" ]; then
+        delay_deviation_ul=0
+    fi
+
     tc -s qdisc replace dev veth2-$ns_identifier root handle 1:0 netem limit $buffer_size
     tc -s qdisc replace dev veth3-$ns_identifier root handle 1:0 netem limit $buffer_size
     $netem_folder/net-setup/bandwidth-controller.py $trace $mean_delay_dl $mean_delay_ul $delay_deviation_dl $delay_deviation_ul $trace_mp_down $trace_mp_ul &> $netem_folder/logs/bw-controller.log &
@@ -154,7 +156,7 @@ fi
 # Delay
 tcCommandDelay="tc -s qdisc add dev veth2-$ns_identifier parent 2:0 handle 3:0 netem"
 
-if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ]; then
+if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ] && [ "$delay_deviation_dl" != "0" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_dl"ms "$delay_deviation_dl"ms distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_dl" ]; then
@@ -188,7 +190,7 @@ fi
 # Delay
 tcCommandDelay="tc -s qdisc add dev veth3-$ns_identifier parent 2:0 handle 3:0 netem"
 
-if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ]; then
+if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ] && [ "$delay_deviation_ul" != "0" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms "$delay_deviation_ul"ms distribution normal limit $buffer_size"
 
 elif [ -n "$mean_delay_ul" ]; then
