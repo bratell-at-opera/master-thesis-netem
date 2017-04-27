@@ -96,10 +96,10 @@ if [ -n "$trace" ] && ( [ -n "$bandwidth_dl" ] || [ -n "$bandwidth_ul" ] ); then
     exit 3
 fi
 
-#if [ -n "$trace" ] && ( [ -z "$delay_deviation_dl" ] || [ -z "$delay_deviation_ul" ] ); then
-#    delay_deviation_dl=2.5
-#    delay_deviation_ul=0.1
-#fi
+if [ -n "$trace" ] && ( [ -z "$delay_deviation_dl" ] || [ -z "$delay_deviation_ul" ] ); then
+    delay_deviation_dl=0
+    delay_deviation_ul=0
+fi
 
 if [ -n "$trace" ] && ( [ -z "$mean_delay_dl" ] || [ -z "$mean_delay_ul" ] ); then
     echo "You need to specify a mean delay if you use a trace!"

@@ -24,7 +24,7 @@ devation_params = {
     "5": 1.64,
     "2.5": 1.96,
     "0.1": 3.1,
-    "0": 1000
+    "0": 1000,
 }
 
 # In args
@@ -204,25 +204,26 @@ for momental_bandwidth in cycled_list:
                            str(buffer_size)
                            ])
     # Latency distribution
-    subprocess.check_call(["tc",
-                           "-s",
-                           "qdisc",
-                           "change",
-                           "dev",
-                           "veth2-" + ns_identifier,
-                           "parent",
-                           "2:0",
-                           "handle",
-                           "3:0",
-                           "netem",
-                           "delay",
-                           str(delay_down) + "ms",
-                           str(delay_sigma_down) + "ms",
-                           "distribution",
-                           "normal",
-                           "limit",
-                           str(buffer_size)
-                           ])
+    if delay_deviation_down != "0":
+        subprocess.check_call(["tc",
+                               "-s",
+                               "qdisc",
+                               "change",
+                               "dev",
+                               "veth2-" + ns_identifier,
+                               "parent",
+                               "2:0",
+                               "handle",
+                               "3:0",
+                               "netem",
+                               "delay",
+                               str(delay_down) + "ms",
+                               str(delay_sigma_down) + "ms",
+                               "distribution",
+                               "normal",
+                               "limit",
+                               str(buffer_size)
+                               ])
 
     # Up
     # Bandwidth
@@ -241,24 +242,25 @@ for momental_bandwidth in cycled_list:
                            "rate",
                            str(bw_up) + "Mbit"])
     # LAtency distribution
-    subprocess.check_call(["tc",
-                           "-s",
-                           "qdisc",
-                           "change",
-                           "dev",
-                           "veth3-" + ns_identifier,
-                           "parent",
-                           "2:0",
-                           "handle",
-                           "3:0",
-                           "netem",
-                           "delay",
-                           str(delay_up) + "ms",
-                           str(delay_sigma_up) + "ms",
-                           "distribution",
-                           "normal",
-                           "limit",
-                           str(buffer_size)
-                           ])
+    if delay_deviation_up != "0":
+        subprocess.check_call(["tc",
+                               "-s",
+                               "qdisc",
+                               "change",
+                               "dev",
+                               "veth3-" + ns_identifier,
+                               "parent",
+                               "2:0",
+                               "handle",
+                               "3:0",
+                               "netem",
+                               "delay",
+                               str(delay_up) + "ms",
+                               str(delay_sigma_up) + "ms",
+                               "distribution",
+                               "normal",
+                               "limit",
+                               str(buffer_size)
+                               ])
 
     time.sleep(second_average)
