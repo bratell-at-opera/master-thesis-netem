@@ -18,7 +18,7 @@ usec_sec = 1000000
 usec_ms = 1000
 bytes_to_MB = 1000000
 bytes_to_bits = 8
-second_average = 0.1
+second_average = 1
 
 devation_params = {
     "5": 1.64,
