@@ -15,9 +15,11 @@ scenarios_to_run = None
 protocol = None
 
 if len(sys.argv) == 4:
-    protocol = sys.argv[2:3]
+    protocol = sys.argv[2:4]
 else:
     protocol = [sys.argv[2]]
+print("Using protocol: " + str(protocol))
+
 if sys.argv[1] == "--bandwidth":
     scenarios_to_run = bandwidth_scenarios
 elif sys.argv[1] == "--latency":
