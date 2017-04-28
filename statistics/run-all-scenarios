@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 import sys
 import os
 import subprocess
@@ -34,28 +35,28 @@ else:
 
 # Run all scenatios
 # Open connections
-for scen in scenarios:
-    print("Runing open connection test: ")
-    for value in scen:
-        print(value)
+for scenario in scenarios_to_run:
+    print("Runing open connection test: " + str(scenario))
     subprocess.check_call(
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
-        scen +
+        scenario +
         ["--open-connection", "--browser=google-chrome", "-g"] +
         protocol
         #stdout=open(log_file, "a+")
         )
+    time.sleep(5)
 
 # Close connections
-for scen in scenarios:
+for scenario in scenarios_to_run:
     print("Runing closed connection test: ")
     for value in scen:
         print(value)
     subprocess.check_call(
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
-        scen +
+        scenario +
         ["--browser=google-chrome", "-g"] +
         protocol
         #stdout=open(log_file, "a+")
         )
+    time.sleep(5)
 
