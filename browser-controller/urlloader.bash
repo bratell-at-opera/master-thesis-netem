@@ -100,9 +100,9 @@ function start-browser {
 
     if [ "$protocol" = "--quic" ]; then
         echo "Use QUIC"
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --enable-quic --origin-to-force-quic-on=$hostname:443 --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --no-first-run --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     else
-        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
+        $browser --enable-benchmarking --enable-net-benchmarking --remote-debugging-port=$ns_identifier --user-data-dir=$profile_dir --ignore-certificate-errors --disable-application-cache --host-resolver-rules="MAP * 192.168.100.1, EXCLUDE localhost" --no-first-run --disk-cache-size=0 chrome://net-internals about:blank &> /dev/null &
     fi
     sleep 10
 }
