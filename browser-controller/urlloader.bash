@@ -112,8 +112,11 @@ if [ "$proto_quic" = true ]; then
     browser=google-chrome
 fi
 
-# Start browser
-start-browser $browser $profile_dir $hostname $with_gui $web_protocol
+# Start browser if not already running
+ps aux | grep chrome | grep "remote-debugging-port" | grep $ns_identifier > /dev/null
+if [ $? -ne 0 ]; then
+    start-browser $browser $profile_dir $hostname $with_gui $web_protocol
+fi
 
 # Create folder where we save HAR-files
 har_folder="$netem_folder/logs/hars/$identifier"
@@ -138,7 +141,6 @@ do
     fi
     # If chrome-har-capturer fails we can't connect to browser
     if [ $? -ne 0 ]; then
-        killall $browser
         start-browser $browser $profile_dir $hostname $with_gui $protocol
         # Retry the site again
         if [ "$open_conn" ]; then

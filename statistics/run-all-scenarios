@@ -42,8 +42,8 @@ for scen in scenarios:
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
         scen +
         ["--open-connection", "--browser=google-chrome", "-g"] +
-        protocol,
-        stdout=open(log_file, "a+")
+        protocol
+        #stdout=open(log_file, "a+")
         )
 
 # Close connections
@@ -55,7 +55,7 @@ for scen in scenarios:
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
         scen +
         ["--browser=google-chrome", "-g"] +
-        protocol,
-        stdout=open(log_file, "a+")
+        protocol
+        #stdout=open(log_file, "a+")
         )
 
