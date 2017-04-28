@@ -75,7 +75,13 @@ with open(identifier_filename) as identifier_file:
 print(ns_identifier)
 
 # Get the block size used, ugly hack
-trace_contens = open(udp_trace_filename).read()
+udp_trace_filepath = \
+    this_folder + \
+    os.path.sep + \
+    ".." +        \
+    os.path.sep + \
+    udp_trace_filename
+trace_contens = open(udp_trace_filepath).read()
 blocksize_regex = re.compile('blocksize \d+')
 blocksize_match = blocksize_regex.findall(trace_contens)[0].split()[1]
 block_size = int(blocksize_match)
@@ -89,7 +95,7 @@ running_time = int(time_match)
 
 bandwidth = []
 
-with open(udp_trace_filename) as udp_trace_file:
+with open(udp_trace_filepath) as udp_trace_file:
     line = udp_trace_file.readline()
     columns = line.split()
     start_time = int(columns[2])

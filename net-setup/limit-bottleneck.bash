@@ -96,11 +96,6 @@ if [ -n "$trace" ] && ( [ -n "$bandwidth_dl" ] || [ -n "$bandwidth_ul" ] ); then
     exit 3
 fi
 
-if [ -n "$trace" ] && ( [ -z "$mean_delay_dl" ] || [ -z "$mean_delay_ul" ] ); then
-    echo "You need to specify a mean delay if you use a trace!"
-    exit 4
-fi
-
 # Used for restoring qdiscs
 function restoreQdiscs () {
     for interface in $@; do
@@ -124,6 +119,12 @@ buffer_size="10000"
 # Bandwidth
 
 if [ -n "$trace" ]; then
+    if [ -z "$mean_delay_dl" ]; then
+        mean_delay_dl=0
+    fi
+    if [ -z "$mean_delay_ul" ]; then
+        mean_delay_ul=0
+    fi
     if [ -z "$delay_deviation_dl" ]; then
         delay_deviation_dl=0
     fi
@@ -161,7 +162,7 @@ if [ -n "$mean_delay_dl" ] && [ -n "$delay_deviation_dl" ] && [ "$delay_deviatio
 
 elif [ -n "$mean_delay_dl" ]; then
     tcCommandDelay="$tcCommandDelay"" delay ""$mean_delay_dl""ms limit $buffer_size"
-elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"]; then
+elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"] && [ "$delay_deviation_dl" != "0" ]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth2-$ns_identifier
     exit 11
@@ -195,7 +196,7 @@ if [ -n "$mean_delay_ul" ] && [ -n "$delay_deviation_ul" ] && [ "$delay_deviatio
 
 elif [ -n "$mean_delay_ul" ]; then
     tcCommandDelay="$tcCommandDelay delay "$mean_delay_ul"ms limit $buffer_size"
-elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"]; then
+elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"] && [ "$delay_deviation_ul" != "0"]; then
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth3-$ns_identifier
     exit 11

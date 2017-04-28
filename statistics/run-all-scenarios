@@ -49,7 +49,7 @@ for scenario in scenarios_to_run:
 # Close connections
 for scenario in scenarios_to_run:
     print("Runing closed connection test: ")
-    for value in scen:
+    for value in scenario:
         print(value)
     subprocess.check_call(
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
