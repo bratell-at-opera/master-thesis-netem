@@ -139,16 +139,12 @@ with open(proto1_filename) as proto1_file:
             nr_resources_more = round(abs(proto1_mean_resources -
                 proto2_mean_resources), 2)
 
-            perc_diff = 1 - min(
-                abs(
-                    proto2_mean_bytes /
-                    proto1_mean_bytes
-                ),
-                abs(
-                    proto1_mean_bytes /
-                    proto2_mean_bytes
-                )
-            )
+            perc_diff = 0
+            if proto2_mean_bytes > proto1_mean_bytes:
+                perc_diff = 1 - proto1_mean_bytes / proto2_mean_bytes
+            elif proto2_mean_bytes < proto1_mean_bytes:
+                perc_diff = 1 - proto2_mean_bytes / proto1_mean_bytes
+
             if perc_diff > 0.01:
                 if proto1_mean_bytes > proto2_mean_bytes:
                     most_bytes = proto1_name

@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import json
+import errors
+
+
+# Create statistics for a certain type of network-protocol combination
+identifiers = {
+    "web_protocol": "",
+    "loss_rate_burst_ul": "",
+    "loss_prob_to_burst_ul": "",
+    "loss_prob_to_gap_ul": "",
+    "delay_ul": "",
+    "deviation_ul": "",
+    "bandwidth_ul": "",
+    "loss_rate_burst_dl": "",
+    "loss_prob_to_burst_dl": "",
+    "loss_prob_to_gap_dl": "",
+    "delay_dl": "",
+    "deviation_dl": "",
+    "bandwidth_dl": "",
+    "connection_type": "close",
+    "trace_mp_ul": "1",
+    "trace_mp_dl": "1"
+}
+
+har_file = sys.argv[1]
+
+if sys.argv[2] == "-pq":
+    identifiers["web_protocol"] = "PROTO-QUIC"
+elif sys.argv[2] == "-h2":
+    identifiers["web_protocol"] = "HTTP2"
+else:
+    identifiers["web_protocol"] = "HTTP"
+
+# Generate some statistics
+output_log = dict()
+output_log["identifiers"] = identifiers
+output_log["stats"] = dict()
+output_log["stats"]["failed_urls"] = 0
+output_log["stats"]["succeeded_urls"] = 0
+output_log["webpages"] = dict()
+
+
+url = "a.url"
+if url not in output_log["webpages"]:
+    output_log["webpages"][url] = []
+current_stats = {}
+
+with open(
+          har_file
+          ) as data_file:
+    data = None
+    try:
+        data = json.load(data_file)["log"]
+    except json.decoder.JSONDecodeError as e:
+        sys.stderr.write("Incorrect json file for url: " + url + "\n")
+        sys.stderr.write(str(e) + ": " + e.msg + "\n\n")
+        current_stats["status"] = False
+        current_stats["error"] = errors.json
+        output_log["webpages"][url].append(current_stats)
+        sys.exit(1)
+
+    time = None
+    try:
+        time = max(entry["pageTimings"]["onContentLoad"] \
+            for entry in data["pages"])
+    except (KeyError, ValueError) as e:
+        current_stats["status"] = False
+        current_stats["error"] = errors.url_load
+        output_log["webpages"][url].append(current_stats)
+        output_log["stats"]["failed_urls"] = \
+            output_log["stats"]["failed_urls"] + 1
+        sys.exit(1)
+    if not time:
+        current_stats["status"] = False
+        current_stats["error"] = errors.url_load
+        output_log["webpages"][url].append(current_stats)
+        output_log["stats"]["failed_urls"] = \
+            output_log["stats"]["failed_urls"] + 1
+        sys.exit(1)
+    current_stats["time"] = time
+    current_stats["resource_count"] = 0
+    current_stats["failed_count"] = 0
+    current_stats["total_bytes_fetched"] = 0
+
+    for http_pair in data['entries']:
+        if "response" in http_pair:
+            response = http_pair["response"]
+
+            if "status" in response:
+
+                # Count nr resources fetched
+                if response["status"] == 200:
+                    error_key_exist = "_error" in response
+                    if error_key_exist is True and \
+                      response["_error"] != "":
+                        current_stats["failed_count"] += 1
+                    else:
+                        current_stats["resource_count"] = \
+                            current_stats["resource_count"] + 1
+
+            # Count the time
+            if type(http_pair["time"]) == "float":
+                current_stats["time"] = \
+                    max(
+                        http_pair["time"],
+                        current_stats["time"])
+            # Add resource size to statistics
+            current_stats["total_bytes_fetched"] = \
+                current_stats["total_bytes_fetched"] +\
+                + response["_transferSize"]
+                #+ response["content"]["size"]
+    current_stats["status"] = True
+    output_log["webpages"][url].append(current_stats)
+    output_log["stats"]["succeeded_urls"] = \
+        output_log["stats"]["succeeded_urls"] + 1
+
+sys.stdout.write(json.dumps(output_log))

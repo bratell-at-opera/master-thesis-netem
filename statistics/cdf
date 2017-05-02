@@ -2,69 +2,84 @@
 
 import statistics
 import sys
+import os
 import json
+from scenarios import bandwidth_scenarios
+import subprocess
+from matplotlib import pyplot
 
 
-data = json.load(sys.stdin)
+this_folder = os.path.dirname(os.path.realpath(__file__))
+fig_nr = 1
 
-values = []
-nr_urls = 0
-urls = []
-url_means = []
 
-for url, stats_list in data["webpages"].items():
-    nr_urls = nr_urls + 1
-    new_values = []
-    for stat in stats_list:
-        if stat["status"] is True:
-            values.append(stat["time"])
-            new_values.append(stat["time"])
-    urls.append(url)
-    if len(new_values) != 0:
-        url_means.append(
-            statistics.mean(new_values)
-            )
-    else:
-        url_means.append(0)
-    values += new_values
+for scen in bandwidth_scenarios:
+    scenario_id = ""
+    for val in scen:
+        scenario_id += val + ", "
+    # Open connections
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen +
+        ["--open-connection", "-h1"],
+        stdout=subprocess.PIPE
+        )
+    http1_out, http1_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen +
+        ["--open-connection", "-h2"],
+        stdout=subprocess.PIPE
+        )
+    http2_out, http2_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen +
+        ["--open-connection", "-q", "-pq"],
+        stdout=subprocess.PIPE
+        )
+    quic_out, quic_err = process.communicate()
 
-median_load_time = statistics.median(values)
-max_load_time = max(values)
-min_load_time = min(values)
-avg_load_time = statistics.mean(values)
-deviation = statistics.stdev(values)
+    outs = []
+    outs.append(json.loads(http2_out.decode('utf-8')))
+    outs.append(json.loads(quic_out.decode('utf-8')))
 
-url_means.sort()
-cdf_scaler = []
-y_value = 0
-for i in range(0, nr_urls):
-    cdf_scaler.append(y_value)
-    y_value += 1/float(nr_urls)
-print(cdf_scaler)
-print(url_means)
+    # Create plot
+    #pyplot.figure(fig_nr)
+    #fig_nr += 1
+    fig, ax = pyplot.subplots()
 
-print("Avg load time: " + str(avg_load_time))
-print("Median load time: " + str(median_load_time))
-print("Stddev: " + str(deviation))
-print("Max load time: " + str(max_load_time))
-print("Min load time: " + str(min_load_time))
-print("Different URLs loaded: " + str(nr_urls))
-failed = data["stats"]["failed_urls"]
-succeeded = data["stats"]["succeeded_urls"]
-fail_percentage = \
-    100 * \
-    (failed / \
-     float(failed + succeeded))
-print("Nr of tries failed to load: " + str(failed))
-print("Nr of tries succeeded to load: " + str(succeeded))
-print("Fail percentage = " + str(fail_percentage))
+    for data in outs:
+        nr_urls = 0
+        urls = []
+        url_means = []
 
-if "--plot" in sys.argv or "-p" in sys.argv:
-    from matplotlib.pyplot import figure, clf, plot, xlabel, ylabel, xlim, ylim, title, grid, axes, show
-    figure(1)
-    plot(url_means, cdf_scaler)
-    xlabel('Website')
-    ylabel('Average load time')
-    title('Average load times')
-    grid(True)
-    show()
+        for url, stats_list in data["webpages"].items():
+            nr_urls = nr_urls + 1
+            new_values = []
+            for stat in stats_list:
+                if stat["status"] is True:
+                    new_values.append(stat["resource_count"])
+            if len(new_values) != 0:
+                url_means.append(
+                    statistics.mean(new_values)
+                    )
+                urls.append(url)
+
+        url_means.sort()
+        cdf_scaler = []
+        y_value = 0
+        for i in range(0, nr_urls):
+            cdf_scaler.append(y_value)
+            y_value += 1/float(nr_urls)
+
+
+        ax.errorbar(url_means, cdf_scaler, label=data["identifiers"]["web_protocol"])
+        #pyplot.plot(url_means, cdf_scaler)
+    pyplot.xlabel('Nr resources fetched')
+    pyplot.ylabel('Ranking')
+    pyplot.title('CDF ' + scenario_id)
+    pyplot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
+    pyplot.grid(True)
+
+pyplot.show()
