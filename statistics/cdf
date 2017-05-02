@@ -4,7 +4,10 @@ import statistics
 import sys
 import os
 import json
-from scenarios import bandwidth_scenarios
+from scenarios import scenarios, \
+                      bandwidth_scenarios, \
+                      latency_scenarios, \
+                      loss_scenarios
 import subprocess
 from matplotlib import pyplot
 
@@ -12,29 +15,40 @@ from matplotlib import pyplot
 this_folder = os.path.dirname(os.path.realpath(__file__))
 fig_nr = 1
 
+scenarios_to_check = scenarios
+compare_key = "time"
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--res-count":
+        compare_key = "resource_count"
+    elif sys.argv[1] == "--bytes":
+        compare_key = "total_bytes_fetched"
+if len(sys.argv) == 3:
+    if sys.argv[2] == "--bandwidth":
+        scenarios_to_check = bandwidth_scenarios
+    if sys.argv[2] == "--loss":
+        scenarios_to_check = loss_scenarios
+    if sys.argv[2] == "--latency":
+        scenarios_to_check = latency_scenarios
 
-for scen in bandwidth_scenarios:
-    scenario_id = ""
-    for val in scen:
-        scenario_id += val + ", "
+for scen in scenarios_to_check:
     # Open connections
     process = subprocess.Popen(
         [this_folder + os.path.sep + "generate-stats"] +
-        scen +
+        scen[1] +
         ["--open-connection", "-h1"],
         stdout=subprocess.PIPE
         )
     http1_out, http1_err = process.communicate()
     process = subprocess.Popen(
         [this_folder + os.path.sep + "generate-stats"] +
-        scen +
+        scen[1] +
         ["--open-connection", "-h2"],
         stdout=subprocess.PIPE
         )
     http2_out, http2_err = process.communicate()
     process = subprocess.Popen(
         [this_folder + os.path.sep + "generate-stats"] +
-        scen +
+        scen[1] +
         ["--open-connection", "-q", "-pq"],
         stdout=subprocess.PIPE
         )
@@ -45,8 +59,6 @@ for scen in bandwidth_scenarios:
     outs.append(json.loads(quic_out.decode('utf-8')))
 
     # Create plot
-    #pyplot.figure(fig_nr)
-    #fig_nr += 1
     fig, ax = pyplot.subplots()
 
     for data in outs:
@@ -55,16 +67,16 @@ for scen in bandwidth_scenarios:
         url_means = []
 
         for url, stats_list in data["webpages"].items():
-            nr_urls = nr_urls + 1
             new_values = []
             for stat in stats_list:
                 if stat["status"] is True:
-                    new_values.append(stat["resource_count"])
+                    new_values.append(stat[compare_key])
             if len(new_values) != 0:
                 url_means.append(
                     statistics.mean(new_values)
                     )
                 urls.append(url)
+                nr_urls = nr_urls + 1
 
         url_means.sort()
         cdf_scaler = []
@@ -73,13 +85,85 @@ for scen in bandwidth_scenarios:
             cdf_scaler.append(y_value)
             y_value += 1/float(nr_urls)
 
-
-        ax.errorbar(url_means, cdf_scaler, label=data["identifiers"]["web_protocol"])
+        ax.errorbar(
+            url_means,
+            cdf_scaler,
+            label=data["identifiers"]["web_protocol"]
+            )
         #pyplot.plot(url_means, cdf_scaler)
-    pyplot.xlabel('Nr resources fetched')
+    pyplot.xlabel(compare_key)
     pyplot.ylabel('Ranking')
-    pyplot.title('CDF ' + scenario_id)
+    pyplot.title('CDF Open connection ' + scen[0])
     pyplot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
     pyplot.grid(True)
+
+
+for scen in scenarios_to_check:
+    # Closed connections
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["-h1"],
+        stdout=subprocess.PIPE
+        )
+    http1_out, http1_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["-h2"],
+        stdout=subprocess.PIPE
+        )
+    http2_out, http2_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["-q", "-pq"],
+        stdout=subprocess.PIPE
+        )
+    quic_out, quic_err = process.communicate()
+
+    outs = []
+    outs.append(json.loads(http2_out.decode('utf-8')))
+    outs.append(json.loads(quic_out.decode('utf-8')))
+
+    # Create plot
+    fig, ax = pyplot.subplots()
+
+    for data in outs:
+        nr_urls = 0
+        urls = []
+        url_means = []
+
+        for url, stats_list in data["webpages"].items():
+            new_values = []
+            for stat in stats_list:
+                if stat["status"] is True:
+                    new_values.append(stat[compare_key])
+            if len(new_values) != 0:
+                url_means.append(
+                    statistics.mean(new_values)
+                    )
+                urls.append(url)
+                nr_urls = nr_urls + 1
+
+        url_means.sort()
+        cdf_scaler = []
+        y_value = 0
+        for i in range(0, nr_urls):
+            cdf_scaler.append(y_value)
+            y_value += 1/float(nr_urls)
+
+        ax.errorbar(
+            url_means,
+            cdf_scaler,
+            label=data["identifiers"]["web_protocol"]
+            )
+        #pyplot.plot(url_means, cdf_scaler)
+    pyplot.xlabel(compare_key)
+    pyplot.ylabel('Ranking')
+    pyplot.title('CDF Closed connection ' + scen[0])
+    pyplot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
+    pyplot.grid(True)
+
 
 pyplot.show()

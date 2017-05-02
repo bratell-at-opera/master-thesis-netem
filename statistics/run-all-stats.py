@@ -101,7 +101,7 @@ for scen in scenarios_to_check:
             ],
             stdout=open(
                 target_folder +
-                "comp_pq_http1_scen" +
+                "comp_pq_http1_" +
                 scen[0] +
                 "_" +
                 test_type +
@@ -123,7 +123,7 @@ for scen in scenarios_to_check:
             ],
             stdout=open(
                 target_folder +
-                "comp_pq_http2_scen" +
+                "comp_pq_http2_" +
                 scen[0] +
                 "_" +
                 test_type +
