@@ -55,6 +55,7 @@ for scen in scenarios_to_check:
     quic_out, quic_err = process.communicate()
 
     outs = []
+    outs.append(json.loads(http1_out.decode('utf-8')))
     outs.append(json.loads(http2_out.decode('utf-8')))
     outs.append(json.loads(quic_out.decode('utf-8')))
 
@@ -123,6 +124,7 @@ for scen in scenarios_to_check:
     quic_out, quic_err = process.communicate()
 
     outs = []
+    outs.append(json.loads(http1_out.decode('utf-8')))
     outs.append(json.loads(http2_out.decode('utf-8')))
     outs.append(json.loads(quic_out.decode('utf-8')))
 
