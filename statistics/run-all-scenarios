@@ -4,14 +4,21 @@ import time
 import sys
 import os
 import subprocess
-from scenarios import *
+from scenarios import scenarios, \
+                      bandwidth_scenarios, \
+                      loss_scenarios, \
+                      latency_scenarios
 
 if len(sys.argv) not in [3, 4]:
     print("Incorrect nr args!")
     sys.exit(1)
 
 this_folder = os.path.dirname(os.path.realpath(__file__))
-log_file = this_folder + os.path.sep + ".." + os.path.sep + "logs" + os.path.sep + "netem.all.log"
+log_file = this_folder + \
+           os.path.sep + \
+           ".." + os.path.sep \
+           + "logs" + os.path.sep \
+           + "netem.all.log"
 scenarios_to_run = None
 protocol = None
 
@@ -36,10 +43,10 @@ else:
 # Run all scenatios
 # Open connections
 for scenario in scenarios_to_run:
-    print("Runing open connection test: " + str(scenario))
+    print("Runing open connection test: " + str(scenario[1]))
     subprocess.check_call(
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
-        scenario +
+        scenario[1] +
         ["--open-connection", "--browser=google-chrome", "-g"] +
         protocol
         #stdout=open(log_file, "a+")
@@ -53,7 +60,7 @@ for scenario in scenarios_to_run:
         print(value)
     subprocess.check_call(
         [this_folder + os.path.sep + ".." + os.path.sep + "netem"] +
-        scenario +
+        scenario[1] +
         ["--browser=google-chrome", "-g"] +
         protocol
         #stdout=open(log_file, "a+")
