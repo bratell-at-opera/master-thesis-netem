@@ -5,6 +5,20 @@ scen8 = (
     "scen8",
     [])
 
+# Poor network
+scen7 = (
+    "scen7",
+    [
+        "--delay-dl=300",
+        "--delay-ul=300",
+        "--delay-deviation-ul=0.1",
+        "--delay-deviation-dl=2.5",
+        "--trace-multiplyer-ul=0.3",
+        "--trace-multiplyer-dl=0.6",
+        "--bw-trace=udp-traces/storo_4x_700kbps_120s_tv.log"
+    ])
+
+
 # Bandwidth scenarios
 scen10 = (
     "scen10",
@@ -125,6 +139,7 @@ scen42 = (
 
 scenarios_defined = globals()
 scenarios = []
+baseline_scenarios = []
 bandwidth_scenarios = []
 bandwidth_scenarios.append(scen8)
 latency_scenarios = []
@@ -136,6 +151,11 @@ for i in range(1, 50):
     var_name = "scen" + str(i)
     if var_name in scenarios_defined:
         scenarios.append(scenarios_defined[var_name])
+
+for i in range(1, 10):
+    var_name = "scen" + str(i)
+    if var_name in scenarios_defined:
+        baseline_scenarios.append(scenarios_defined[var_name])
 
 for i in range(10, 20):
     var_name = "scen" + str(i)
