@@ -7,7 +7,8 @@ import json
 from scenarios import scenarios, \
                       bandwidth_scenarios, \
                       latency_scenarios, \
-                      loss_scenarios
+                      loss_scenarios, \
+                      baseline_scenarios
 import subprocess
 from matplotlib import pyplot
 
@@ -29,6 +30,8 @@ if len(sys.argv) == 3:
         scenarios_to_check = loss_scenarios
     if sys.argv[2] == "--latency":
         scenarios_to_check = latency_scenarios
+    if sys.argv[2] == "--baseline":
+        scenarios_to_check = baseline_scenarios
 
 for scen in scenarios_to_check:
     # Open connections
@@ -66,6 +69,7 @@ for scen in scenarios_to_check:
         nr_urls = 0
         urls = []
         url_means = []
+        values = list()
 
         for url, stats_list in data["webpages"].items():
             new_values = []
@@ -78,16 +82,18 @@ for scen in scenarios_to_check:
                     )
                 urls.append(url)
                 nr_urls = nr_urls + 1
+            values += new_values
 
         url_means.sort()
+        values.sort()
         cdf_scaler = []
         y_value = 0
-        for i in range(0, nr_urls):
+        for i in range(0, len(values)):
             cdf_scaler.append(y_value)
-            y_value += 1/float(nr_urls)
+            y_value += 1/float(len(values))
 
         ax.errorbar(
-            url_means,
+            values,
             cdf_scaler,
             label=data["identifiers"]["web_protocol"]
             )
@@ -95,7 +101,7 @@ for scen in scenarios_to_check:
     pyplot.xlabel(compare_key)
     pyplot.ylabel('Ranking')
     pyplot.title('CDF Open connection ' + scen[0])
-    pyplot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
+    pyplot.legend(bbox_to_anchor=(0.98, 0.285), loc=1, borderaxespad=0.)
     pyplot.grid(True)
 
 
@@ -135,6 +141,7 @@ for scen in scenarios_to_check:
         nr_urls = 0
         urls = []
         url_means = []
+        values = list()
 
         for url, stats_list in data["webpages"].items():
             new_values = []
@@ -147,16 +154,18 @@ for scen in scenarios_to_check:
                     )
                 urls.append(url)
                 nr_urls = nr_urls + 1
+            values += new_values
 
         url_means.sort()
+        values.sort()
         cdf_scaler = []
         y_value = 0
-        for i in range(0, nr_urls):
+        for i in range(0, len(values)):
             cdf_scaler.append(y_value)
-            y_value += 1/float(nr_urls)
+            y_value += 1/float(len(values))
 
         ax.errorbar(
-            url_means,
+            values,
             cdf_scaler,
             label=data["identifiers"]["web_protocol"]
             )
@@ -164,7 +173,7 @@ for scen in scenarios_to_check:
     pyplot.xlabel(compare_key)
     pyplot.ylabel('Ranking')
     pyplot.title('CDF Closed connection ' + scen[0])
-    pyplot.legend(bbox_to_anchor=(0.285, 0.99), loc=1, borderaxespad=0.)
+    pyplot.legend(bbox_to_anchor=(0.98, 0.285), loc=1, borderaxespad=0.)
     pyplot.grid(True)
 
 
