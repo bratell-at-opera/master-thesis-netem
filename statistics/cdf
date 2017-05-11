@@ -10,7 +10,7 @@ from scenarios import scenarios, \
                       loss_scenarios, \
                       baseline_scenarios
 import subprocess
-from matplotlib import pyplot,rcParams
+from matplotlib import pyplot, rcParams, ticker
 import numpy
 
 
@@ -115,7 +115,11 @@ for scen in scenarios_to_check:
         #pyplot.plot(url_means, cdf_scaler)
     #ax.locator_params(axis='y', tight=True, nbins=nbins_x)
     #ax.locator_params(axis='x', tight=True, nbins=nbins_y)
-    pyplot.xticks(numpy.arange(min(values), max(values)+1, (max(values) - min(values)) / nbins_x))
+    print(numpy.around(numpy.arange(min(values), max(values)+1, (max(values) - min(values)) / nbins_x), decimals=-2))
+    if scen[0] == "scen7":
+        pyplot.xticks(numpy.around(numpy.arange(0, 8000, (8000) / nbins_x), decimals=-2))
+    else:
+        pyplot.xticks(numpy.around(numpy.arange(min(values), max(values)+1, (max(values) - min(values)) / nbins_x), decimals=-2))
     pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
     pyplot.xlabel(compare_key, labelpad=axis_label_offset)
     #pyplot.ylabel('Share less than X', labelpad=axis_label_offset)
@@ -199,7 +203,10 @@ for scen in scenarios_to_check:
     #ax.locator_params(axis='y', tight=True, nbins=nbins_x)
     #ax.locator_params(axis='x', tight=True, nbins=nbins_y)
         #pyplot.plot(url_means, cdf_scaler)
-    pyplot.xticks(numpy.arange(min(values), max(values)+1, (max(values) - min(values)) / nbins_x))
+    if scen[0] == "scen7":
+        pyplot.xticks(numpy.around(numpy.arange(0, 8000, (8000) / nbins_x), decimals=-2))
+    else:
+        pyplot.xticks(numpy.around(numpy.arange(min(values), max(values)+1, (max(values) - min(values)) / nbins_x), decimals=-2))
     pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
     pyplot.xlabel(compare_key, labelpad=axis_label_offset)
     #pyplot.ylabel('Probability less than X', labelpad=axis_label_offset)
