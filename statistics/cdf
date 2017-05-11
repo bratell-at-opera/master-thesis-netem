@@ -45,98 +45,99 @@ if len(sys.argv) == 3:
     if sys.argv[2] == "--baseline":
         scenarios_to_check = baseline_scenarios
 
-for scen in scenarios_to_check:
-    # Open connections
-    process = subprocess.Popen(
-        [this_folder + os.path.sep + "generate-stats"] +
-        scen[1] +
-        ["--open-connection", "-h1"],
-        stdout=subprocess.PIPE
-        )
-    http1_out, http1_err = process.communicate()
-    process = subprocess.Popen(
-        [this_folder + os.path.sep + "generate-stats"] +
-        scen[1] +
-        ["--open-connection", "-h2"],
-        stdout=subprocess.PIPE
-        )
-    http2_out, http2_err = process.communicate()
-    process = subprocess.Popen(
-        [this_folder + os.path.sep + "generate-stats"] +
-        scen[1] +
-        ["--open-connection", "-q", "-pq"],
-        stdout=subprocess.PIPE
-        )
-    quic_out, quic_err = process.communicate()
-
-    outs = []
-    outs.append(json.loads(http1_out.decode('utf-8')))
-    outs.append(json.loads(http2_out.decode('utf-8')))
-    outs.append(json.loads(quic_out.decode('utf-8')))
-
-    # Create plot
-    fig, ax = pyplot.subplots()
-    min_value = 0
-    max_value = 0
-
-    for data in outs:
-        nr_urls = 0
-        urls = []
-        url_means = []
-        values = list()
-
-        for url, stats_list in data["webpages"].items():
-            new_values = []
-            for stat in stats_list:
-                if stat["status"] is True:
-                    if compare_keys[compare_key] == "total_bytes_fetched":
-                        new_values.append(stat[compare_keys[compare_key]] / 1000.0)
-                    else:
-                        new_values.append(stat[compare_keys[compare_key]])
-            if len(new_values) != 0:
-                url_means.append(
-                    statistics.mean(new_values)
-                    )
-                urls.append(url)
-                nr_urls = nr_urls + 1
-            values += new_values
-
-        url_means.sort()
-        values.sort()
-        cdf_scaler = []
-        y_value = 0
-        for i in range(0, len(values)):
-            cdf_scaler.append(y_value)
-            y_value += 1/float(len(values))
-
-        ax.errorbar(
-            values,
-            cdf_scaler,
-            label=data["identifiers"]["web_protocol"]
+for conn_type in ["open", "close"]:
+    for scen in scenarios_to_check:
+        # Open connections
+        process = subprocess.Popen(
+            [this_folder + os.path.sep + "generate-stats"] +
+            scen[1] +
+            ["--" + conn_type + "-connection", "-h1"],
+            stdout=subprocess.PIPE
             )
-        #pyplot.plot(url_means, cdf_scaler)
-        #ax.locator_params(axis='y', tight=True, nbins=nbins_x)
-        #ax.locator_params(axis='x', tight=True, nbins=nbins_y)
-
-
-        max_value = max(max_value, max(values))
-        min_value = min(min_value, min(values))
-        if scen[0] == "scen7" and compare_keys[compare_key] == "total_bytes_fetched":
-            pyplot.xticks(numpy.around(numpy.arange(0, 8000, (8000) / nbins_x), decimals=-2))
-        elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
-            pyplot.xticks(numpy.around(numpy.arange(0, 80000, (80000) / nbins_x), decimals=-2))
-        else:
-            pyplot.xticks(numpy.around(numpy.arange(min_value, max_value+1, (max_value - min_value) / nbins_x), decimals=-2))
-        pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
-        pyplot.xlabel(compare_key, labelpad=axis_label_offset)
-        #pyplot.ylabel('Share less than X', labelpad=axis_label_offset)
-        pyplot.title('CDF Open connection ' + scen[0])
-        pyplot.legend(
-            bbox_to_anchor=(0.98, 0.285),
-            loc=1,
-            borderaxespad=axis_unit_offset,
-            prop={"size": legend_size}
+        http1_out, http1_err = process.communicate()
+        process = subprocess.Popen(
+            [this_folder + os.path.sep + "generate-stats"] +
+            scen[1] +
+            ["--" + conn_type + "-connection", "-h2"],
+            stdout=subprocess.PIPE
             )
-        pyplot.grid(True)
+        http2_out, http2_err = process.communicate()
+        process = subprocess.Popen(
+            [this_folder + os.path.sep + "generate-stats"] +
+            scen[1] +
+            ["--" + conn_type + "-connection", "-q", "-pq"],
+            stdout=subprocess.PIPE
+            )
+        quic_out, quic_err = process.communicate()
+
+        outs = []
+        outs.append(json.loads(http1_out.decode('utf-8')))
+        outs.append(json.loads(http2_out.decode('utf-8')))
+        outs.append(json.loads(quic_out.decode('utf-8')))
+
+        # Create plot
+        fig, ax = pyplot.subplots()
+        min_value = 0
+        max_value = 0
+
+        for data in outs:
+            nr_urls = 0
+            urls = []
+            url_means = []
+            values = list()
+
+            for url, stats_list in data["webpages"].items():
+                new_values = []
+                for stat in stats_list:
+                    if stat["status"] is True:
+                        if compare_keys[compare_key] == "total_bytes_fetched":
+                            new_values.append(stat[compare_keys[compare_key]] / 1000.0)
+                        else:
+                            new_values.append(stat[compare_keys[compare_key]])
+                if len(new_values) != 0:
+                    url_means.append(
+                        statistics.mean(new_values)
+                        )
+                    urls.append(url)
+                    nr_urls = nr_urls + 1
+                values += new_values
+
+            url_means.sort()
+            values.sort()
+            cdf_scaler = []
+            y_value = 0
+            for i in range(0, len(values)):
+                cdf_scaler.append(y_value)
+                y_value += 1/float(len(values))
+
+            ax.errorbar(
+                values,
+                cdf_scaler,
+                label=data["identifiers"]["web_protocol"]
+                )
+            #pyplot.plot(url_means, cdf_scaler)
+            #ax.locator_params(axis='y', tight=True, nbins=nbins_x)
+            #ax.locator_params(axis='x', tight=True, nbins=nbins_y)
+
+
+            max_value = max(max_value, max(values))
+            min_value = min(min_value, min(values))
+            if scen[0] == "scen7" and compare_keys[compare_key] == "total_bytes_fetched":
+                pyplot.xticks(numpy.around(numpy.arange(0, 8000, (8000) / nbins_x), decimals=-2))
+            elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
+                pyplot.xticks(numpy.around(numpy.arange(0, 80000, (80000) / nbins_x), decimals=-2))
+            else:
+                pyplot.xticks(numpy.around(numpy.arange(min_value, max_value+1, (max_value - min_value) / nbins_x), decimals=-2))
+            pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
+            pyplot.xlabel(compare_key, labelpad=axis_label_offset)
+            #pyplot.ylabel('Share less than X', labelpad=axis_label_offset)
+            pyplot.title('CDF ' + conn_type + ' connection ' + scen[0])
+            pyplot.legend(
+                bbox_to_anchor=(0.98, 0.285),
+                loc=1,
+                borderaxespad=axis_unit_offset,
+                prop={"size": legend_size}
+                )
+            pyplot.grid(True)
 
 pyplot.show()
