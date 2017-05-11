@@ -135,6 +135,8 @@ for argument in sys.argv[1:]:
             argument.replace("--bandwidth-dl=", "")
     elif "--open-connection" in argument:
         identifiers["connection_type"] = "open"
+    elif "--close-connection" in argument:
+        pass
     elif "--bw-trace=" in argument:
         identifiers["bandwidth_dl"] = "trace"
     elif "--trace-multiplyer-ul=" in argument:
