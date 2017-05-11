@@ -10,19 +10,28 @@ from scenarios import scenarios, \
                       loss_scenarios, \
                       baseline_scenarios
 import subprocess
-from matplotlib import pyplot
+from matplotlib import pyplot,rcParams
 
 
 this_folder = os.path.dirname(os.path.realpath(__file__))
 fig_nr = 1
+axis_label_offset = -2.5
+axis_unit_offset = 0.0
+legend_size = 10
+rcParams.update({'font.size': 14})
+
+compare_keys = {
+    "Time (ms)": "time",
+    "Bytes fetched (kB)": "total_bytes_fetched"
+}
 
 scenarios_to_check = scenarios
-compare_key = "time"
+compare_key = "Time (ms)"
 if len(sys.argv) > 1:
     if sys.argv[1] == "--res-count":
         compare_key = "resource_count"
     elif sys.argv[1] == "--bytes":
-        compare_key = "total_bytes_fetched"
+        compare_key = "Bytes fetched (kB)"
 if len(sys.argv) == 3:
     if sys.argv[2] == "--bandwidth":
         scenarios_to_check = bandwidth_scenarios
@@ -75,7 +84,7 @@ for scen in scenarios_to_check:
             new_values = []
             for stat in stats_list:
                 if stat["status"] is True:
-                    new_values.append(stat[compare_key])
+                    new_values.append(stat[compare_keys[compare_key]])
             if len(new_values) != 0:
                 url_means.append(
                     statistics.mean(new_values)
@@ -98,10 +107,15 @@ for scen in scenarios_to_check:
             label=data["identifiers"]["web_protocol"]
             )
         #pyplot.plot(url_means, cdf_scaler)
-    pyplot.xlabel(compare_key)
-    pyplot.ylabel('Ranking')
+    pyplot.xlabel(compare_key, labelpad=axis_label_offset)
+    pyplot.ylabel('Probability less than X', labelpad=axis_label_offset)
     pyplot.title('CDF Open connection ' + scen[0])
-    pyplot.legend(bbox_to_anchor=(0.98, 0.285), loc=1, borderaxespad=0.)
+    pyplot.legend(
+        bbox_to_anchor=(0.98, 0.285),
+        loc=1,
+        borderaxespad=axis_unit_offset,
+        prop={"size": legend_size}
+        )
     pyplot.grid(True)
 
 
@@ -147,7 +161,10 @@ for scen in scenarios_to_check:
             new_values = []
             for stat in stats_list:
                 if stat["status"] is True:
-                    new_values.append(stat[compare_key])
+                    if compare_keys[compare_key] == "total_bytes_fetched":
+                        new_values.append(stat[compare_keys[compare_key]] / 1000.0)
+                    else:
+                        new_values.append(stat[compare_keys[compare_key]])
             if len(new_values) != 0:
                 url_means.append(
                     statistics.mean(new_values)
@@ -170,10 +187,15 @@ for scen in scenarios_to_check:
             label=data["identifiers"]["web_protocol"]
             )
         #pyplot.plot(url_means, cdf_scaler)
-    pyplot.xlabel(compare_key)
-    pyplot.ylabel('Ranking')
+    pyplot.xlabel(compare_key, labelpad=axis_label_offset)
+    pyplot.ylabel('Probability less than X', labelpad=axis_label_offset)
     pyplot.title('CDF Closed connection ' + scen[0])
-    pyplot.legend(bbox_to_anchor=(0.98, 0.285), loc=1, borderaxespad=0.)
+    pyplot.legend(
+        bbox_to_anchor=(0.98, 0.285),
+        loc=1,
+        borderaxespad=axis_unit_offset,
+        prop={'size':legend_size}
+        )
     pyplot.grid(True)
 
 
