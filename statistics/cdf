@@ -77,6 +77,7 @@ for conn_type in ["open", "close"]:
 
         # Create plot
         fig, ax = pyplot.subplots()
+        fig.set_size_inches(575/96.0, 381/96.0)
         min_value = 0
         max_value = 0
 
@@ -119,12 +120,15 @@ for conn_type in ["open", "close"]:
             #ax.locator_params(axis='y', tight=True, nbins=nbins_x)
             #ax.locator_params(axis='x', tight=True, nbins=nbins_y)
 
+            if len(values) != 0:
+                max_value = max(max_value, max(values))
+                min_value = min(min_value, min(values))
 
-            max_value = max(max_value, max(values))
-            min_value = min(min_value, min(values))
-            if scen[0] == "scen7" and compare_keys[compare_key] == "total_bytes_fetched":
+            if scen[0] == "scen7" and compare_keys[compare_key] == "total_bytes_fetched" and conn_type == "open":
                 pyplot.xticks(numpy.around(numpy.arange(0, 8000, (8000) / nbins_x), decimals=-2))
             elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
+                pyplot.xticks(numpy.around(numpy.arange(0, 80000, (80000) / nbins_x), decimals=-2))
+            elif scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "close":
                 pyplot.xticks(numpy.around(numpy.arange(0, 80000, (80000) / nbins_x), decimals=-2))
             else:
                 pyplot.xticks(numpy.around(numpy.arange(min_value, max_value+1, (max_value - min_value) / nbins_x), decimals=-2))
