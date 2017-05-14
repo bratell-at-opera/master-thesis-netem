@@ -141,11 +141,8 @@ scenarios_defined = globals()
 scenarios = []
 baseline_scenarios = []
 bandwidth_scenarios = []
-bandwidth_scenarios.append(scen8)
 latency_scenarios = []
-latency_scenarios.append(scen8)
 loss_scenarios = []
-loss_scenarios.append(scen8)
 
 for i in range(1, 50):
     var_name = "scen" + str(i)
