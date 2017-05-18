@@ -151,7 +151,7 @@ for conn_type in ["open", "close"]:
             pyplot.ylabel('P(X < x)', labelpad=axis_label_offset)
             #pyplot.title('CDF ' + conn_type + ' connection ' + scen[0])
             pyplot.legend(
-                bbox_to_anchor=(0.98, 0.285),
+                bbox_to_anchor=(0.98, 0.35), #285),
                 loc=1,
                 borderaxespad=axis_unit_offset,
                 prop={"size": legend_size}
