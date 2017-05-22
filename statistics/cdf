@@ -18,7 +18,7 @@ this_folder = os.path.dirname(os.path.realpath(__file__))
 fig_nr = 1
 axis_label_offset = -1.0
 axis_unit_offset = 0.0
-legend_size = 14
+legend_size = 28
 rcParams.update({'font.size': legend_size})
 nbins_x = 6
 nbins_y = 5
@@ -89,7 +89,7 @@ for conn_type in ["open", "close"]:
 
         # Create plot
         fig, ax = pyplot.subplots()
-        fig.set_size_inches(575/96.0, 381/96.0)
+        fig.set_size_inches(1150/96.0, 762/96.0)
         min_value = 0
         max_value = 0
 
@@ -123,17 +123,25 @@ for conn_type in ["open", "close"]:
                 cdf_scaler.append(y_value)
                 y_value += 1/float(len(values))
 
-            if scen[0] != "scen40" or compare_keys[compare_key] != "time" or conn_type != "open":
-                ax.errorbar(
-                    values,
-                    cdf_scaler,
-                    label=data["identifiers"]["web_protocol"]
-                    )
-            else:
+            if scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "open":
                 smaller_values = numpy.array(values) / 1000.0
                 print(smaller_values)
                 ax.errorbar(
                     smaller_values,
+                    cdf_scaler,
+                    label=data["identifiers"]["web_protocol"]
+                    )
+            elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
+                smaller_values = numpy.array(values) / 1000.0
+                print(smaller_values)
+                ax.errorbar(
+                    smaller_values,
+                    cdf_scaler,
+                    label=data["identifiers"]["web_protocol"]
+                    )
+            else:
+                ax.errorbar(
+                    values,
                     cdf_scaler,
                     label=data["identifiers"]["web_protocol"]
                     )
@@ -151,7 +159,7 @@ for conn_type in ["open", "close"]:
             pyplot.ylabel('P(X < x)', labelpad=axis_label_offset)
             #pyplot.title('CDF ' + conn_type + ' connection ' + scen[0])
             pyplot.legend(
-                bbox_to_anchor=(0.98, 0.35), #285),
+                bbox_to_anchor=(0.98, 0.3), #285),
                 loc=1,
                 borderaxespad=axis_unit_offset,
                 prop={"size": legend_size}
@@ -162,8 +170,10 @@ for conn_type in ["open", "close"]:
                 pyplot.xticks(numpy.around(numpy.arange(0, scen7_upper, (scen7_upper) / nbins_x), decimals=-2))
                 pyplot.xlim(0, scen7_upper)
             elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
-                scen7_upper = 80000
+                pyplot.xlabel("Time (s)", labelpad=axis_label_offset)
+                scen7_upper = 80
                 pyplot.xlim(0, scen7_upper)
+                pyplot.xticks(numpy.around(numpy.arange(0, scen7_upper, (scen7_upper) / nbins_x)))
             elif scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "open":
                 pyplot.xlabel("Time (s)", labelpad=axis_label_offset)
                 scen40_upper = 80
