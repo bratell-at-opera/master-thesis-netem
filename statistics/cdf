@@ -176,7 +176,12 @@ for conn_type in ["open", "close"]:
                 pyplot.xticks(numpy.around(numpy.arange(0, scen7_upper, (scen7_upper) / nbins_x)))
             elif scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "open":
                 pyplot.xlabel("Time (s)", labelpad=axis_label_offset)
-                scen40_upper = 80
+                scen8_upper = 80
+                pyplot.xticks(numpy.around(numpy.arange(0, scen8_upper, (scen8_upper) / nbins_x)))
+                pyplot.xlim(0, scen8_upper)
+            elif scen[0] == "scen8" and compare_keys[compare_key] == "time" and conn_type == "open":
+                #pyplot.xlabel("Time (s)", labelpad=axis_label_offset)
+                scen40_upper = 8000
                 pyplot.xticks(numpy.around(numpy.arange(0, scen40_upper, (scen40_upper) / nbins_x)))
                 pyplot.xlim(0, scen40_upper)
             else:
