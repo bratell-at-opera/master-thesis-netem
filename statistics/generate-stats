@@ -6,6 +6,7 @@ import json
 import errors
 
 
+
 def print_help(callable_name, error_info=None):
     if error_info:
         sys.stderr.write(callable_name + ": " + error_info)
@@ -196,6 +197,16 @@ match_string += "_loss-" + \
     identifiers["delay_ul"] + \
     "_"
 
+# Make sure we only use the URLs listed in conf
+this_folder = os.path.dirname(os.path.realpath(__file__))
+used_urls = {}
+url_conf_path = this_folder + os.sep + ".." + os.sep + "config" + os.sep + "urls.txt"
+
+with open(url_conf_path, "r") as url_conf:
+    for line in url_conf:
+        this_url = line.strip()
+        used_urls[this_url] = True
+
 matching_folders = []
 for folder in os.listdir(path_to_statistics):
     if match_string in folder:
@@ -222,6 +233,8 @@ for folder in matching_folders:
             continue
 
         url = har_file.replace(".har", "")
+        if url not in used_urls:
+            continue
         if url not in output_log["webpages"]:
             output_log["webpages"][url] = []
         current_stats = {}
