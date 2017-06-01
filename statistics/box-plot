@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+
+import statistics
+import sys
+import os
+import json
+from scenarios import scenarios, \
+                      bandwidth_scenarios, \
+                      latency_scenarios, \
+                      loss_scenarios, \
+                      baseline_scenarios
+import subprocess
+from matplotlib import \
+    pyplot, \
+    rcParams, \
+    ticker
+import numpy
+
+
+this_folder = os.path.dirname(os.path.realpath(__file__))
+fig_nr = 1
+axis_label_offset = -1.0
+axis_unit_offset = 0.0
+legend_size = 28
+rcParams.update({'font.size': legend_size})
+nbins_x = 6
+nbins_y = 5
+plot = False
+
+compare_keys = {
+    "Time (ms)": "time",
+    "Bytes fetched (kB)": "total_bytes_fetched"
+}
+
+scenarios_to_check = scenarios
+compare_key = "Time (ms)"
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--res-count":
+        compare_key = "resource_count"
+    elif sys.argv[1] == "--bytes":
+        compare_key = "Bytes fetched (kB)"
+if len(sys.argv) >= 3:
+    if sys.argv[2] == "--bandwidth":
+        print("Plotting bandwidth scenarios. ")
+        scenarios_to_check = bandwidth_scenarios
+    elif sys.argv[2] == "--loss":
+        print("Plotting loss scenarios. ")
+        scenarios_to_check = loss_scenarios
+    elif sys.argv[2] == "--latency":
+        print("Plotting latency scenarios. ")
+        scenarios_to_check = latency_scenarios
+    elif sys.argv[2] == "--baseline":
+        print("Plotting baseline scenarios. ")
+        scenarios_to_check = baseline_scenarios
+    else:
+        print("Plotting all scenarios. ")
+
+if len(sys.argv) == 4:
+    if sys.argv[3] == "--plot":
+        plot = True
+
+conn_type = "open"
+# function for setting the colors of the box plots pairs
+def setBoxColors(bp):
+    pyplot.setp(bp['boxes'][0], color='blue')
+    pyplot.setp(bp['caps'][0], color='blue')
+    pyplot.setp(bp['caps'][1], color='blue')
+    pyplot.setp(bp['whiskers'][0], color='blue')
+    pyplot.setp(bp['whiskers'][1], color='blue')
+    pyplot.setp(bp['fliers'][0], color='blue')
+    #pyplot.setp(bp['fliers'][1], color='blue')
+    pyplot.setp(bp['medians'][0], color='blue')
+
+    pyplot.setp(bp['boxes'][1], color='red')
+    pyplot.setp(bp['caps'][2], color='red')
+    pyplot.setp(bp['caps'][3], color='red')
+    pyplot.setp(bp['whiskers'][2], color='red')
+    pyplot.setp(bp['whiskers'][3], color='red')
+    pyplot.setp(bp['fliers'][1], color='red')
+    #pyplot.setp(bp['fliers'][3], color='red')
+    pyplot.setp(bp['medians'][1], color='red')
+
+    pyplot.setp(bp['boxes'][2], color='black')
+    pyplot.setp(bp['caps'][4], color='black')
+    pyplot.setp(bp['caps'][5], color='black')
+    pyplot.setp(bp['whiskers'][4], color='black')
+    pyplot.setp(bp['whiskers'][5], color='black')
+    pyplot.setp(bp['fliers'][2], color='black')
+    #pyplot.setp(bp['fliers'][5], color='black')
+    pyplot.setp(bp['medians'][2], color='black')
+
+fig = pyplot.figure()
+fig.set_size_inches(1150/96.0, 503/96.0)
+ax = pyplot.axes()
+pyplot.hold(True)
+
+min_value = 0
+max_value = 0
+
+
+position = 0
+for scen in scenarios_to_check:
+    # Open connections
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["--" + conn_type + "-connection", "-h1"],
+        stdout=subprocess.PIPE
+        )
+    http1_out, http1_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["--" + conn_type + "-connection", "-h2"],
+        stdout=subprocess.PIPE
+        )
+    http2_out, http2_err = process.communicate()
+    process = subprocess.Popen(
+        [this_folder + os.path.sep + "generate-stats"] +
+        scen[1] +
+        ["--" + conn_type + "-connection", "-q", "-pq"],
+        stdout=subprocess.PIPE
+        )
+    quic_out, quic_err = process.communicate()
+
+    outs = []
+    outs.append(json.loads(http1_out.decode('utf-8')))
+    outs.append(json.loads(http2_out.decode('utf-8')))
+    outs.append(json.loads(quic_out.decode('utf-8')))
+
+    out_values = list()
+
+    for data in outs:
+        nr_urls = 0
+        urls = []
+        url_means = []
+        values = list()
+
+        for url, stats_list in data["webpages"].items():
+            new_values = []
+            for stat in stats_list:
+                if stat["status"] is True:
+                    if compare_keys[compare_key] == "total_bytes_fetched":
+                        new_values.append(stat[compare_keys[compare_key]] / 1000.0)
+                    else:
+                        new_values.append(stat[compare_keys[compare_key]])
+            if len(new_values) != 0:
+                url_means.append(
+                    statistics.mean(new_values)
+                    )
+                urls.append(url)
+                nr_urls = nr_urls + 1
+            values += new_values
+
+        url_means.sort()
+        values.sort()
+        max_value = max(values[len(values)-1], max_value)
+        out_values.append(values)
+    # boxplot tripple
+    bp = pyplot.boxplot(out_values, positions = [4*position + 1, 4*position + 2, 4*position + 3], widths = 0.6)
+    setBoxColors(bp)
+
+    # set axes limits and labels
+    nr_scenarios = len(scenarios_to_check)
+    pyplot.xlim(0, 4*nr_scenarios + 3)
+    pyplot.ylim(0, max_value)
+    ax.set_xticklabels([scen[0] for scen in scenarios_to_check])
+    my_xticks = []
+    for i in range(0, nr_scenarios):
+        my_xticks.append(i*4 + 2)
+    ax.set_xticks(my_xticks)
+    position += 1
+
+# draw temporary red and blue lines and use them to create a legend
+hB, = pyplot.plot([1,1],'b-')
+hR, = pyplot.plot([1,1],'r-')
+hK, = pyplot.plot([1,1],'k-')
+pyplot.legend((hB, hR, hK),('HTTP', 'HTTP/2', 'PROTO-QUIC'))
+hB.set_visible(False)
+hR.set_visible(False)
+hK.set_visible(False)
+# Plot
+pyplot.grid(True)
+
+#    figure_path = this_folder + \
+#        os.path.sep + \
+#        ".." + \
+#        os.path.sep + \
+#        ".." + \
+#        os.path.sep + \
+#        "master-thesis" + \
+#        os.path.sep + \
+#        "cdf" + \
+#        os.path.sep + \
+#        scen[0] + \
+#        "_" + \
+#        conn_type + \
+#        "_" + \
+#        compare_keys[compare_key] + \
+#        "_boxplot" + \
+#        ".png"
+#    pyplot.savefig(figure_path, bbox_inches='tight')
+pyplot.show()
