@@ -21,7 +21,7 @@ this_folder = os.path.dirname(os.path.realpath(__file__))
 fig_nr = 1
 axis_label_offset = -1.0
 axis_unit_offset = 0.0
-legend_size = 28
+legend_size = 18
 rcParams.update({'font.size': legend_size})
 nbins_x = 6
 nbins_y = 5
@@ -33,6 +33,7 @@ compare_keys = {
 }
 
 scenarios_to_check = scenarios
+scenario_type = ""
 compare_key = "Time (ms)"
 
 if len(sys.argv) > 1:
@@ -44,15 +45,19 @@ if len(sys.argv) >= 3:
     if sys.argv[2] == "--bandwidth":
         print("Plotting bandwidth scenarios. ")
         scenarios_to_check = bandwidth_scenarios
+        scenario_type = "bandwidth"
     elif sys.argv[2] == "--loss":
         print("Plotting loss scenarios. ")
         scenarios_to_check = loss_scenarios
+        scenario_type = "loss"
     elif sys.argv[2] == "--latency":
         print("Plotting latency scenarios. ")
         scenarios_to_check = latency_scenarios
+        scenario_type = "latency"
     elif sys.argv[2] == "--baseline":
         print("Plotting baseline scenarios. ")
         scenarios_to_check = baseline_scenarios
+        scenario_type = "baseline"
     else:
         print("Plotting all scenarios. ")
 
@@ -155,20 +160,23 @@ for scen in scenarios_to_check:
 
         url_means.sort()
         values.sort()
-        max_value = max(values[len(values)-1], max_value)
+        if len(values) != 0:
+            max_value = max(values[len(values)-1] * 0.45, max_value)
         out_values.append(values)
     # boxplot tripple
-    bp = pyplot.boxplot(out_values, positions = [4*position + 1, 4*position + 2, 4*position + 3], widths = 0.6)
+    bp = pyplot.boxplot(out_values, positions = [5*position + 1, 5*position + 2, 5*position + 3], widths = 0.6)
     setBoxColors(bp)
 
     # set axes limits and labels
     nr_scenarios = len(scenarios_to_check)
-    pyplot.xlim(0, 4*nr_scenarios + 3)
+    pyplot.xlim(0, 5*nr_scenarios)
     pyplot.ylim(0, max_value)
-    ax.set_xticklabels([scen[0] for scen in scenarios_to_check])
+    #pyplot.xlabel(compare_key, labelpad=axis_label_offset)
+    pyplot.ylabel('Load time (ms)', labelpad=axis_label_offset)
+    ax.set_xticklabels([scen[2] for scen in scenarios_to_check])
     my_xticks = []
     for i in range(0, nr_scenarios):
-        my_xticks.append(i*4 + 2)
+        my_xticks.append(i*5 + 2)
     ax.set_xticks(my_xticks)
     position += 1
 
@@ -176,29 +184,36 @@ for scen in scenarios_to_check:
 hB, = pyplot.plot([1,1],'b-')
 hR, = pyplot.plot([1,1],'r-')
 hK, = pyplot.plot([1,1],'k-')
-pyplot.legend((hB, hR, hK),('HTTP', 'HTTP/2', 'PROTO-QUIC'))
+pyplot.legend((hB, hR, hK),('HTTP', 'HTTP/2', 'PROTO-QUIC'),
+    bbox_to_anchor=(0.99, 0.99), #285),
+    loc=1,
+    borderaxespad=axis_unit_offset,
+    prop={"size": legend_size}
+)
+
 hB.set_visible(False)
 hR.set_visible(False)
 hK.set_visible(False)
 # Plot
 pyplot.grid(True)
 
-#    figure_path = this_folder + \
-#        os.path.sep + \
-#        ".." + \
-#        os.path.sep + \
-#        ".." + \
-#        os.path.sep + \
-#        "master-thesis" + \
-#        os.path.sep + \
-#        "cdf" + \
-#        os.path.sep + \
-#        scen[0] + \
-#        "_" + \
-#        conn_type + \
-#        "_" + \
-#        compare_keys[compare_key] + \
-#        "_boxplot" + \
-#        ".png"
-#    pyplot.savefig(figure_path, bbox_inches='tight')
-pyplot.show()
+if not plot:
+    figure_path = this_folder + \
+        os.path.sep + \
+        ".." + \
+        os.path.sep + \
+        ".." + \
+        os.path.sep + \
+        "master-thesis" + \
+        os.path.sep + \
+        "cdf" + \
+        os.path.sep + \
+        scenario_type + \
+        "_" + \
+        compare_keys[compare_key] + \
+        "_boxplot" + \
+        ".png"
+    pyplot.savefig(figure_path, bbox_inches='tight')
+else:
+    pyplot.show()
+
