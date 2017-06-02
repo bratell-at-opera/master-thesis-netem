@@ -185,7 +185,7 @@ hB, = pyplot.plot([1,1],'b-')
 hR, = pyplot.plot([1,1],'r-')
 hK, = pyplot.plot([1,1],'k-')
 pyplot.legend((hB, hR, hK),('HTTP', 'HTTP/2', 'PROTO-QUIC'),
-    bbox_to_anchor=(0.99, 0.99), #285),
+    bbox_to_anchor=(0.27, 0.995), #285),
     loc=1,
     borderaxespad=axis_unit_offset,
     prop={"size": legend_size}

@@ -82,46 +82,46 @@ scen15 = (
     )
 
 # Latency scenarios
-scen20 = (
-    "scen20",
+scen23 = (
+    "scen23",
     [
         "--delay-dl=300",
         "--delay-ul=300",
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "H delay"
+    "H latency"
     )
-scen21 = (
-    "scen21",
+scen22 = (
+    "scen22",
     [
         "--delay-dl=150",
         "--delay-ul=150",
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "M delay"
+    "M latency"
     )
 
-scen22 = (
-    "scen22",
+scen21 = (
+    "scen21",
     [
         "--delay-dl=75",
         "--delay-ul=75",
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "L delay"
+    "L latency"
     )
-scen23 = (
-    "scen23",
+scen20 = (
+    "scen20",
     [
         "--delay-dl=50",
         "--delay-ul=50",
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "T delay"
+    "T latency"
     )
 
 # Latency variation scenario
@@ -135,12 +135,12 @@ scen30 = (
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "Varying delay"
+    "Varying latency"
     )
 
 # Loss scenarios
-scen40 = (
-    "scen40",
+scen42 = (
+    "scen42",
     [
         "--bandwidth-dl=10",
         "--bandwidth-ul=10",
@@ -162,8 +162,8 @@ scen41 = (
     ],
     "M loss"
     )
-scen42 = (
-    "scen42",
+scen40 = (
+    "scen40",
     [
         "--bandwidth-dl=10",
         "--bandwidth-ul=10",
@@ -205,3 +205,9 @@ for i in range(40, 50):
     var_name = "scen" + str(i)
     if var_name in scenarios_defined:
         loss_scenarios.append(scenarios_defined[var_name])
+
+
+differing_scenarios = []
+differing_scenarios.append(scenarios_defined["scen8"])
+differing_scenarios.append(scenarios_defined["scen20"])
+differing_scenarios.append(scenarios_defined["scen23"])

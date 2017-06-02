@@ -123,13 +123,22 @@ for conn_type in ["open", "close"]:
                 cdf_scaler.append(y_value)
                 y_value += 1/float(len(values))
 
+            protocol = data["identifiers"]["web_protocol"]
+            if protocol == "HTTP":
+                line_color = "b"
+            elif protocol == "HTTP2":
+                line_color = "r"
+            elif protocol == "PROTO-QUIC":
+                line_color = "k"
+
             if scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "open":
                 smaller_values = numpy.array(values) / 1000.0
                 print(smaller_values)
                 ax.errorbar(
                     smaller_values,
                     cdf_scaler,
-                    label=data["identifiers"]["web_protocol"]
+                    label=data["identifiers"]["web_protocol"],
+                    color=line_color
                     )
             elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
                 smaller_values = numpy.array(values) / 1000.0
@@ -137,13 +146,15 @@ for conn_type in ["open", "close"]:
                 ax.errorbar(
                     smaller_values,
                     cdf_scaler,
-                    label=data["identifiers"]["web_protocol"]
+                    label=data["identifiers"]["web_protocol"],
+                    color=line_color
                     )
             else:
                 ax.errorbar(
                     values,
                     cdf_scaler,
-                    label=data["identifiers"]["web_protocol"]
+                    label=data["identifiers"]["web_protocol"],
+                    color=line_color
                     )
 
             #pyplot.plot(url_means, cdf_scaler)
@@ -166,7 +177,7 @@ for conn_type in ["open", "close"]:
                 )
 
             if scen[0] == "scen7" and compare_keys[compare_key] == "total_bytes_fetched" and conn_type == "open":
-                scen7_upper = 8000
+                scen7_upper = 4000
                 pyplot.xticks(numpy.around(numpy.arange(0, scen7_upper, (scen7_upper) / nbins_x), decimals=-2))
                 pyplot.xlim(0, scen7_upper)
             elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
