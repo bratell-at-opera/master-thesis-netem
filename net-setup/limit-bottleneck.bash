@@ -166,6 +166,8 @@ elif [ -n "$delay_deviation_dl" ] && [ -z "$mean_delay_dl"] && [ "$delay_deviati
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth2-$ns_identifier
     exit 11
+else
+    tcCommandDelay="$tcCommandDelay"" limit $buffer_size"
 fi
 eval "$tcCommandDelay"
 
@@ -200,6 +202,8 @@ elif [ -n "$delay_deviation_ul" ] && [ -z "$mean_delay_ul"] && [ "$delay_deviati
     echo "ERROR: You can not set a delay deviation without setting a delay!!"
     restoreQdiscs veth3-$ns_identifier
     exit 11
+else
+    tcCommandDelay="$tcCommandDelay"" limit $buffer_size"
 fi
 eval "$tcCommandDelay"
 

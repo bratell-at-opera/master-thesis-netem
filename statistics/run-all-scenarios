@@ -7,6 +7,7 @@ import subprocess
 from scenarios import scenarios, \
                       bandwidth_scenarios, \
                       loss_scenarios, \
+                      extra_scenarios, \
                       latency_scenarios
 
 if len(sys.argv) not in [3, 4]:
@@ -36,6 +37,8 @@ elif sys.argv[1] == "--loss":
     scenarios_to_run = loss_scenarios
 elif sys.argv[1] == "--all":
     scenarios_to_run = scenarios
+elif sys.argv[1] == "--extra-scenarios":
+    scenarios_to_run = extra_scenarios
 else:
     print("Incorrect nr args!")
     sys.exit(2)

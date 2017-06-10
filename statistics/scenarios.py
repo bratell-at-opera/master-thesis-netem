@@ -24,8 +24,8 @@ scen7 = (
 
 
 # Bandwidth scenarios
-scen11 = (
-    "scen11",
+scen12 = (
+    "scen12",
     [
         "--bandwidth-dl=2",
         "--bandwidth-ul=1"
@@ -33,8 +33,8 @@ scen11 = (
     "M bw"
     )
 
-scen12 = (
-    "scen12",
+scen13 = (
+    "scen13",
     [
         "--bandwidth-dl=0.5",
         "--bandwidth-ul=0.25"
@@ -42,8 +42,8 @@ scen12 = (
     "L bw"
     )
 
-scen13 = (
-    "scen13",
+scen14 = (
+    "scen14",
     [
         "--trace-multiplyer-ul=1.2",
         "--trace-multiplyer-dl=2.4",
@@ -52,8 +52,8 @@ scen13 = (
     "H trace"
     )
 
-scen14 = (
-    "scen14",
+scen15 = (
+    "scen15",
     [
         "--trace-multiplyer-ul=0.6",
         "--trace-multiplyer-dl=1.2",
@@ -62,8 +62,8 @@ scen14 = (
     "M trace"
     )
 
-scen10 = (
-    "scen10",
+scen11 = (
+    "scen11",
     [
         "--bandwidth-dl=5",
         "--bandwidth-ul=3"
@@ -71,8 +71,17 @@ scen10 = (
     "H bw"
     )
 
-scen15 = (
-    "scen15",
+scen10 = (
+    "scen10",
+    [
+        "--bandwidth-dl=10",
+        "--bandwidth-ul=5"
+    ],
+    "EH bw"
+    )
+
+scen16 = (
+    "scen16",
     [
         "--trace-multiplyer-ul=0.3",
         "--trace-multiplyer-dl=0.6",
@@ -82,8 +91,8 @@ scen15 = (
     )
 
 # Latency scenarios
-scen23 = (
-    "scen23",
+scen24 = (
+    "scen24",
     [
         "--delay-dl=300",
         "--delay-ul=300",
@@ -92,8 +101,8 @@ scen23 = (
     ],
     "H latency"
     )
-scen22 = (
-    "scen22",
+scen23 = (
+    "scen23",
     [
         "--delay-dl=150",
         "--delay-ul=150",
@@ -103,8 +112,8 @@ scen22 = (
     "M latency"
     )
 
-scen21 = (
-    "scen21",
+scen22 = (
+    "scen22",
     [
         "--delay-dl=75",
         "--delay-ul=75",
@@ -113,8 +122,8 @@ scen21 = (
     ],
     "L latency"
     )
-scen20 = (
-    "scen20",
+scen21 = (
+    "scen21",
     [
         "--delay-dl=50",
         "--delay-ul=50",
@@ -122,6 +131,17 @@ scen20 = (
         "--bandwidth-ul=10"
     ],
     "T latency"
+    )
+
+scen20 = (
+    "scen20",
+    [
+        "--delay-dl=5",
+        "--delay-ul=5",
+        "--bandwidth-dl=10",
+        "--bandwidth-ul=10"
+    ],
+    "ET latency"
     )
 
 # Latency variation scenario
@@ -209,5 +229,10 @@ for i in range(40, 50):
 
 differing_scenarios = []
 differing_scenarios.append(scenarios_defined["scen8"])
-differing_scenarios.append(scenarios_defined["scen20"])
-differing_scenarios.append(scenarios_defined["scen23"])
+differing_scenarios.append(scenarios_defined["scen21"])
+differing_scenarios.append(scenarios_defined["scen24"])
+
+extra_scenarios = []
+extra_scenarios.append(scen10)
+extra_scenarios.append(scen20)
+extra_scenarios.append(scen22)
