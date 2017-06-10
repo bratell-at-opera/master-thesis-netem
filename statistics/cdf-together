@@ -32,12 +32,14 @@ compare_keys = {
 
 scenarios_to_check = scenarios
 compare_key = "Time (ms)"
+cdf_smaller_than = "t"
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "--res-count":
         compare_key = "resource_count"
     elif sys.argv[1] == "--bytes":
         compare_key = "Bytes fetched (kB)"
+        cdf_smaller_than = "b"
     elif sys.argv[1] == "--time":
         pass
 
@@ -128,10 +130,14 @@ for scen in scenarios_to_check:
             elif protocol == "PROTO-QUIC":
                 line_color = "k"
 
+            test_type = "new"
+            if conn_type == "open":
+                test_type = "persistent"
+
             ax.errorbar(
                 values,
                 cdf_scaler,
-                label=data["identifiers"]["web_protocol"] + " " + conn_type,
+                label=data["identifiers"]["web_protocol"] + " " + test_type,
                 fmt=line_fmt,
                 color=line_color
                 )
@@ -143,10 +149,10 @@ for scen in scenarios_to_check:
             # Plot
             pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
             pyplot.xlabel(compare_key, labelpad=axis_label_offset)
-            pyplot.ylabel('P(X < x)', labelpad=axis_label_offset)
+            pyplot.ylabel('P(X < ' + cdf_smaller_than + ')', labelpad=axis_label_offset)
             #pyplot.title('CDF ' + conn_type + ' connection ' + scen[0])
             pyplot.legend(
-                bbox_to_anchor=(0.99, 0.65), #285),
+                bbox_to_anchor=(0.99, 0.61), #285),
                 loc=1,
                 borderaxespad=axis_unit_offset,
                 prop={"size": legend_size}
