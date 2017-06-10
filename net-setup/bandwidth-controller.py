@@ -9,7 +9,7 @@ import re
 import os
 
 
-if len(sys.argv) not in [6, 7, 8]:
+if len(sys.argv) not in [3, 6, 7, 8]:
     sys.stderr.write("Incorrect no arguments. \n")
     sys.exit(1)
 
@@ -24,38 +24,46 @@ devation_params = {
     "5": 1.64,
     "2.5": 1.96,
     "0.1": 3.1,
-    "0": 1000,
+    "0": 1000
 }
 
 # In args
 udp_trace_filename = sys.argv[1]
-delay_down = int(sys.argv[2])
-delay_up = int(sys.argv[3])
-delay_deviation_down = sys.argv[4]
-delay_deviation_up = sys.argv[5]
+delay_down = None
+delay_up = None
+delay_deviation_down = None
+delay_deviation_up = None
 bw_down_mp = None
 bw_up_mp = None
 deviation_param_down = None
 deviation_param_up = None
+stats = False
 
-try:
-    print(sys.argv)
-    deviation_param_down = devation_params[delay_deviation_down]
-    deviation_param_up = devation_params[delay_deviation_up]
-except KeyError:
-    sys.stderr.write("No entry for delay deviation.\n")
-    sys.exit(1)
+if sys.argv[2] != "--stats":
+    delay_down = int(sys.argv[2])
+    delay_up = int(sys.argv[3])
+    delay_deviation_down = sys.argv[4]
+    delay_deviation_up = sys.argv[5]
+    try:
+        print(sys.argv)
+        deviation_param_down = devation_params[delay_deviation_down]
+        deviation_param_up = devation_params[delay_deviation_up]
+    except KeyError:
+        sys.stderr.write("No entry for delay deviation.\n")
+        sys.exit(1)
 
-try:
-    bw_down_mp = float(sys.argv[6])
-    bw_up_mp = float(sys.argv[7])
-except IndexError:
-    pass
+    try:
+        bw_down_mp = float(sys.argv[6])
+        bw_up_mp = float(sys.argv[7])
+    except IndexError:
+        pass
 
-if not bw_down_mp:
-    bw_down_mp = 1
-if not bw_up_mp:
-    bw_up_mp = 1
+    if not bw_down_mp:
+        bw_down_mp = 1
+    if not bw_up_mp:
+        bw_up_mp = 1
+else:
+    stats = True
 
 # Get ns identifier
 ns_identifier = None
@@ -66,11 +74,12 @@ identifier_filename = this_folder + \
     os.path.sep + \
     "identifiers.conf"
 
-with open(identifier_filename) as identifier_file:
-    for line in identifier_file:
-        print(line)
-        if "ns_identifier" in line:
-            ns_identifier = line.split("=")[1].replace("\'", "").strip()
+if not stats:
+    with open(identifier_filename) as identifier_file:
+        for line in identifier_file:
+            print(line)
+            if "ns_identifier" in line:
+                ns_identifier = line.split("=")[1].replace("\'", "").strip()
 
 print(ns_identifier)
 
@@ -132,6 +141,9 @@ with open(udp_trace_filepath) as udp_trace_file:
             break
 
 mean_bandwidth = statistics.mean(bandwidth)
+max_bandwidth = max(bandwidth)
+min_bandwidth = min(bandwidth)
+
 sys.stdout.write(udp_trace_filename +
                  " is a trace of length " +
                  time_match +
@@ -140,7 +152,14 @@ sys.stdout.write(udp_trace_filename +
                  " bytes \n" +
                  "The average bandwidth of this trace is " +
                  str(mean_bandwidth) +
-                 "Mbit/s.\n\n")
+                 "Mbit/s.\n" +
+                 "The max bw is: " +
+                 str(max_bandwidth) +
+                 "\n The min bandwidth is: " +
+                 str(min_bandwidth) +
+                 "\n\n")
+if stats:
+    sys.exit(0)
 
 # Get average bandwidth every n:th second
 step_size = second_average / (running_time / len(bandwidth))
