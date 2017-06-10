@@ -23,6 +23,7 @@ rcParams.update({'font.size': legend_size})
 nbins_x = 6
 nbins_y = 5
 plot = False
+medians = []
 
 compare_keys = {
     "Time (ms)": "time",
@@ -31,11 +32,13 @@ compare_keys = {
 
 scenarios_to_check = scenarios
 compare_key = "Time (ms)"
+cdf_smaller_than = "t"
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "--res-count":
         compare_key = "resource_count"
     elif sys.argv[1] == "--bytes":
+        cdf_smaller_than = "b"
         compare_key = "Bytes fetched (kB)"
 if len(sys.argv) >= 3:
     if sys.argv[2] == "--bandwidth":
@@ -117,6 +120,7 @@ for conn_type in ["open", "close"]:
 
             url_means.sort()
             values.sort()
+
             cdf_scaler = []
             y_value = 0
             for i in range(0, len(values)):
@@ -131,9 +135,11 @@ for conn_type in ["open", "close"]:
             elif protocol == "PROTO-QUIC":
                 line_color = "k"
 
+            if len(values) != 0:
+                medians.append((scen[2], statistics.median(values), protocol, conn_type))
+
             if scen[0] == "scen40" and compare_keys[compare_key] == "time" and conn_type == "open":
                 smaller_values = numpy.array(values) / 1000.0
-                print(smaller_values)
                 ax.errorbar(
                     smaller_values,
                     cdf_scaler,
@@ -142,7 +148,6 @@ for conn_type in ["open", "close"]:
                     )
             elif scen[0] == "scen7" and compare_keys[compare_key] == "time":
                 smaller_values = numpy.array(values) / 1000.0
-                print(smaller_values)
                 ax.errorbar(
                     smaller_values,
                     cdf_scaler,
@@ -167,7 +172,7 @@ for conn_type in ["open", "close"]:
             # Plor
             pyplot.yticks(numpy.arange(0.0, 1.2, 1 / float(nbins_y)))
             pyplot.xlabel(compare_key, labelpad=axis_label_offset)
-            pyplot.ylabel('P(X < x)', labelpad=axis_label_offset)
+            pyplot.ylabel('P(X < ' + cdf_smaller_than + ')', labelpad=axis_label_offset)
             #pyplot.title('CDF ' + conn_type + ' connection ' + scen[0])
             pyplot.legend(
                 bbox_to_anchor=(0.98, 0.3), #285),
@@ -218,3 +223,6 @@ for conn_type in ["open", "close"]:
         pyplot.savefig(figure_path, bbox_inches='tight')
 if plot:
     pyplot.show()
+
+for scenario in medians:
+    print(scenario[0] + " " + scenario[3] + " " + scenario[2] + ": " + str(scenario[1]))
