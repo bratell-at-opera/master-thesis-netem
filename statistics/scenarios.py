@@ -155,7 +155,7 @@ scen30 = (
         "--bandwidth-dl=10",
         "--bandwidth-ul=10"
     ],
-    "Varying latency"
+    "Var latency"
     )
 
 # Loss scenarios
